@@ -4,6 +4,7 @@
 #include "frame.h"
 
 #define DEBUG 0
+#define ND 2
 
 //Global Functions
 double get_cs2( double );
@@ -319,8 +320,8 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     }
     S0 = -U[1]*Sk[0] - U[2]*Sk[1] - U[3]*Sk[2];
 
-    for(mu=1; mu<4; mu++)
-        for(nu=0; nu<4; nu++)
+    for(mu=1; mu<ND; mu++)
+        for(nu=0; nu<ND; nu++)
         {
             if(mu == nu)
                 S0 += -(rhoh*u[mu]*l[nu] + Pp) * dU[4*mu+nu];
