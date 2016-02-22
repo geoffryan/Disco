@@ -4,7 +4,8 @@
 #include "frame.h"
 
 #define DEBUG 0
-#define ND 2
+#define DEBUG2 0
+#define ND 3
 
 //Global Functions
 double get_cs2( double );
@@ -113,6 +114,14 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
     double rhoh = rho + gamma_law/(gamma_law-1.0)*Pp + b2;
     double rhoe = Pp / (gamma_law-1.0);
     double sqrtgam = jac / al;
+
+    if(DEBUG2)
+    {
+        printf("B2 = %.12lg, uB = %.12lg, UB = %.12lg\n", B2, uB, UB);
+        printf("bd[0] = %.12lg, bd[1] = %.12lg, bd[2] = %.12lg\n", 
+                    bd[0], bd[1], bd[2]);
+        printf("b2 = %.12lg, Ub = %.12lg, b0 = %.12lg\n", b2, Ub, b0);
+    }
 
     cons[DDD] = jac * rho*u0 * dV;
     cons[SRR] = jac * (rhoh*u0*l[0] - b0*bd[0]) * dV;
@@ -377,7 +386,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
         metric_der_g(x, i+1, dg);
         for(mu=0; mu<4; mu++)
             for(nu=0; nu<4; nu++)
-                Sk[i] += (rhoh*u[mu]*u[nu] + ig[4*mu+nu]*Pp - b[mu]*b[nu])
+                Sk[i] += (rhoh*u[mu]*u[nu] + ig[4*mu+nu]*Pt - b[mu]*b[nu])
                             * dg[4*mu+nu];
         Sk[i] *= 0.5;
     }
@@ -648,7 +657,7 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
 void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
 {
     double prec = 1.0e-12;
-    double max_iter = 100;
+    double max_iter = 30;
     double Nextra = 2;
 
     double r = x[0];
@@ -733,29 +742,48 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     
     i = 0;
     int clean = -1;
+    
+    if(DEBUG2)
+    {
+        printf("s2 = %.12lg, e = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                    s2,e,Q,eta);
+        printf("0: (%.12lg, %.12lg)\n", v21, eta1);
+    }
+
     while(1)
     {
         v2 = v21;
         eta = eta1;
         
-        w = 1.0/sqrt(1-v2);
+        w = 1.0/sqrt(1.0-v2);
         double fa = (eta+Q)*(eta+Q)*v2 - psi*(2*eta+Q)/(eta*eta) - s2;
-        double fb = eta - n*(1-v2)*(eta-w) + 0.5*Q*(1+v2) - psi/(eta*eta) - e;
+        double fb = eta - n*(1-v2)*(eta-w) + 0.5*Q*(1+v2) - 0.5*psi/(eta*eta)
+                    - e;
         double dfadv2 = (eta+Q)*(eta+Q);
         double dfadet = 2*(eta+Q)*(v2 + psi/(eta*eta*eta));
         double dfbdv2 = n * (eta-0.5*w) + 0.5*Q;
-        double dfbdet = 1 - n*(1-v2) + 2*psi/(eta*eta*eta);
+        double dfbdet = 1 - n*(1-v2) + psi/(eta*eta*eta);
         double detj = dfadv2*dfbdet - dfbdv2*dfadet;
 
 
-        v21  = v2  - (dfbdet*fa - dfadet*fb)/detj;
-        eta1 = eta - (dfbdv2*fa - dfadv2*fb)/detj;
+        v21  = v2  - ( dfbdet*fa - dfadet*fb)/detj;
+        eta1 = eta - (-dfbdv2*fa + dfadv2*fb)/detj;
 
         i++;
 
         double err = (eta1-eta)/eta;
+        //if(err != err)
+        //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
 
-        if(fabs(err) < prec)
+        if(DEBUG2)
+        {
+            printf("%d: (%.12lg, %.12lg) (%.12lg, %.12lg) %.12lg\n", 
+                    i, v21, eta1, fa, fb, err);
+            printf("    %.12lg %.12lg %.12lg %.12lg\n", dfadv2, dfadet, 
+                        dfbdv2, dfbdet);
+        }
+
+        if(fabs(err) < prec && clean < 0)
             clean = Nextra+1;
         if(clean >= 0)
             clean--;
@@ -763,9 +791,9 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
             break;
     }
 
-    if(i == max_iter)
-        printf("ERROR: NR failed to converge: err = %.12lg\n", 
-                fabs(eta1-eta)/eta);
+    if(i == max_iter && (DEBUG || DEBUG2))
+        printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
+                x[0], x[1], x[2], fabs(eta1-eta)/eta);
 
     v2 = v21;
     eta = eta1;

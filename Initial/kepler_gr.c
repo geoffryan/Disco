@@ -17,31 +17,49 @@ void initial(double *prim, double *x)
     double r = x[0];
     double phi = x[1];
     double z = x[2];
-    double R = sqrt(r*r+z+z);
+    double R = sqrt(r*r+z*z);
+    double st = r/R;
+    double ct = z/R;
 
-    double g00 = -1 + 2*M/r;
-    double g0r = 2*M/r;
-    double grr = 1 + 2*M/r;
+    double g00 = -1 + 2*M/R;
+    double g0R = 2*M/R;
+    double gRR = 1 + 2*M/R;
+    double gtt = R*R;
     double gpp = r*r;
 
-    double u0, ur, up;
+    double u0eq, uReq, upeq, u0pol, uRpol, uppol;
 
-    if(r > 6*M)
+    if(R > 6*M)
     {
-        u0 = sqrt(r/(r-3*M));
-        ur = 0.0;
-        up = sqrt(M/(r*r*r - 3*M*r*r));
+        u0eq = sqrt(R/(R-3*M));
+        uReq = 0.0;
+        upeq = sqrt(M/(R*R*R - 3*M*R*R)) / st;
     }
     else
     {
-        double x = 6*M/r - 1.0;
-        u0 = 2.0 * (sqrt(2.0)*r - M*sqrt(x*x*x)) / (3.0*(r-2.0*M));
-        ur = -sqrt(x*x*x) / 3.0;
-        up = 2.0*sqrt(3.0)*M/(r*r);
+        double x = 6*M/R - 1.0;
+        u0eq = 2.0 * (sqrt(2.0)*R - M*sqrt(x*x*x)) / (3.0*(R-2.0*M));
+        uReq = -sqrt(x*x*x) / 3.0;
+        upeq = 2.0*sqrt(3.0)*M/(R*R) / st;
     }
+    u0pol = (R*R - 2*M*sqrt(2.0*M*R)) / (R*R - 2*M*R);
+    uRpol = -sqrt(2*M/R);
+    uppol = 0.0;
 
-    double lr = g0r*u0 + grr*ur;
-    double lp = gpp*up;
+    double lReq, lpeq, lRpol, lppol;
+
+    lReq = g0R*u0eq + gRR*uReq;
+    lpeq = gpp*upeq;
+    lRpol = g0R*u0pol + gRR*uRpol;
+    lppol = gpp*uppol;
+
+
+    double lR = ct*ct*lRpol + st*st*lReq;
+    double lp = ct*ct*lppol + st*st*lpeq;
+    double lt = 0.0;
+
+    double lr = st * lR - ct/R * lt;
+    double lz = ct * lR + st/R * lt;
 
     //lr = 0.0;
 
@@ -56,7 +74,7 @@ void initial(double *prim, double *x)
     prim[PPP] = Pp;
     prim[URR] = lr;
     prim[UPP] = lp;
-    prim[UZZ] = 0.0;
+    prim[UZZ] = lz;
     
     if( NUM_N>0 ) 
         prim[NUM_C] = r>10.0 ? 1.0 : 0.0;
