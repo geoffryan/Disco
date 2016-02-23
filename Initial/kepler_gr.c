@@ -75,6 +75,13 @@ void initial(double *prim, double *x)
     prim[URR] = lr;
     prim[UPP] = lp;
     prim[UZZ] = lz;
+
+    if(NUM_C > 5)
+    {
+        int q;
+        for(q=5; q<NUM_C; q++)
+            prim[q] = 0.0;
+    }
     
     if( NUM_N>0 ) 
         prim[NUM_C] = r>10.0 ? 1.0 : 0.0;

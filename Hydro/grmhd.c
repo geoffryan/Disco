@@ -3,8 +3,9 @@
 #include "metric.h"
 #include "frame.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #define DEBUG2 0
+#define DEBUG_RMAX 3.5
 #define ND 3
 
 //Global Functions
@@ -392,7 +393,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     }
     S0 = -U[1]*Sk[0] - U[2]*Sk[1] - U[3]*Sk[2];
 
-    for(mu=1; mu<ND; mu++)
+    for(mu=0; mu<ND; mu++)
         for(nu=0; nu<ND; nu++)
         {
             if(mu == nu)
@@ -706,7 +707,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     double e = (tau/D + Us + 1.0) / (al*U[0]);
     double n = (gamma_law-1.0)/gamma_law;
 
-    if(e*e < s2 && DEBUG)
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX)
     {
         printf("Not enough thermal energy (r=%.12lg, e2=%.12lg, s2=%.12lg)\n",
                 r, e*e, s2);
@@ -746,7 +747,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     if(DEBUG2)
     {
         printf("s2 = %.12lg, e = %.12lg, Q = %.12lg, psi = %.12lg\n",
-                    s2,e,Q,eta);
+                    s2,e,Q,psi);
         printf("0: (%.12lg, %.12lg)\n", v21, eta1);
     }
 
@@ -771,6 +772,14 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
 
         i++;
 
+        if(v21 > 1.0)
+            v21 = 0.5*(v2 + 1.0);
+        if(v21 < 0.0)
+            v21 = 0.5*v2;
+        if(eta1 < 1.0)
+            eta1 = 0.5*(eta+1.0);
+
+
         double err = (eta1-eta)/eta;
         //if(err != err)
         //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
@@ -791,9 +800,15 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
             break;
     }
 
-    if(i == max_iter && (DEBUG || DEBUG2))
+    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX)
+    {
         printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
                 x[0], x[1], x[2], fabs(eta1-eta)/eta);
+        printf("    s2 = %.12lg, e = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                s2, e, Q, psi);
+        printf("    v20 = %.12lg, et0 = %.12lg, v21 = %.12lg, et1 = %.12lg\n",
+                v20, eta0, v21, eta1);
+    }
 
     v2 = v21;
     eta = eta1;
@@ -834,7 +849,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     for( q=NUM_C ; q<NUM_Q ; ++q )
         prim[q] = cons[q]/cons[DDD];
     
-    if(e*e < s2 && DEBUG)
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX)
     {
         double cons1[NUM_Q];
         prim2cons(prim, cons1, x, 1.0);

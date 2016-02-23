@@ -41,8 +41,8 @@ def plotCheckpoint(file):
     plotAx(ax[1,0], r, prim[:,2], "linear", "linear", r"$r$", r"$u_r$", 'k+')
     plotAx(ax[1,1], r, prim[:,3], "linear", "linear", r"$r$", r"$u_\phi$",'k+')
     plotAx(ax[1,2], r, prim[:,4], "linear", "linear", r"$r$", r"$u_z$", 'k+')
-    if nq > 5:
-        plotAx(ax[0,2], r, prim[:,5], "linear", "linear", r"$r$", r"$q$", 'k+')
+    if nq > 8:
+        plotAx(ax[0,2], r, prim[:,8], "linear", "linear", r"$r$", r"$q$", 'k+')
     plotAx(ax[2,0], r, prim[:,5], "linear", "linear", r"$r$", r"$B^r$", 'k+')
     plotAx(ax[2,1], r, prim[:,6], "linear", "linear", r"$r$", r"$B^\phi$",'k+')
     plotAx(ax[2,2], r, prim[:,7], "linear", "linear", r"$r$", r"$B^z$", 'k+')
