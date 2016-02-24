@@ -21,7 +21,7 @@ void initial( double * prim , double * x ){
    double rhoL = 1.0e-2;
    double PL = 1.0;
    double rhoR = 1.0e-4;
-   double PR = 5.0e-5;
+   double PR = 3.0e-5;
 
    double rho = r > r0 ? rhoR : rhoL;
    double Pp  = r > r0 ? PR : PL;

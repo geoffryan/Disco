@@ -320,13 +320,13 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     }
     S0 = -U[1]*Sk[0] - U[2]*Sk[1] - U[3]*Sk[2];
 
-    for(mu=1; mu<ND; mu++)
-        for(nu=0; nu<ND; nu++)
+    for(mu=1; mu<=ND; mu++)
+        for(nu=0; nu<=ND; nu++)
         {
             if(mu == nu)
                 S0 += -(rhoh*u[mu]*l[nu] + Pp) * dU[4*mu+nu];
             else
-                S0 += -(rhoh*u[mu]*l[nu])*dU[4*mu+nu];
+                S0 += -(rhoh*u[mu]*l[nu]) * dU[4*mu+nu];
         }
 
     cons[SRR] += jac * Sk[0] * dVdt;

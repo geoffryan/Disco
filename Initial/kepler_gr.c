@@ -63,7 +63,7 @@ void initial(double *prim, double *x)
 
     //lr = 0.0;
 
-    double uIsco2 = 0.5;
+    double uIsco2 = 1.0/3.0;
     double u_cs2 = uIsco2 / (Mach*Mach);
     double cs2 = u_cs2 / (1.0 + u_cs2);
 

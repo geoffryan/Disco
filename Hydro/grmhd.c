@@ -393,8 +393,8 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     }
     S0 = -U[1]*Sk[0] - U[2]*Sk[1] - U[3]*Sk[2];
 
-    for(mu=0; mu<ND; mu++)
-        for(nu=0; nu<ND; nu++)
+    for(mu=0; mu<=ND; mu++)
+        for(nu=0; nu<=ND; nu++)
         {
             if(mu == nu)
                 S0 += -(rhoh*u[mu]*l[nu] + Pt - b[mu]*bd[nu]) * dU[4*mu+nu];
