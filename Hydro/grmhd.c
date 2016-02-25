@@ -5,7 +5,8 @@
 
 #define DEBUG 1
 #define DEBUG2 0
-#define DEBUG_RMAX 3.5
+#define DEBUG_RMAX 7.5
+#define DEBUG_ZMAX 3.5
 #define ND 3
 
 //Global Functions
@@ -662,6 +663,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     double Nextra = 2;
 
     double r = x[0];
+    double z = x[2];
 
     double D = cons[DDD];
     double S[3] = {cons[SRR], cons[LLL], cons[SZZ]};
@@ -707,7 +709,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     double e = (tau/D + Us + 1.0) / (al*U[0]);
     double n = (gamma_law-1.0)/gamma_law;
 
-    if(e*e < s2 && DEBUG && r < DEBUG_RMAX)
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX && fabs(z)<DEBUG_ZMAX)
     {
         printf("Not enough thermal energy (r=%.12lg, e2=%.12lg, s2=%.12lg)\n",
                 r, e*e, s2);
@@ -800,7 +802,8 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
             break;
     }
 
-    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX)
+    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX
+                && fabs(z)<DEBUG_ZMAX)
     {
         printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
                 x[0], x[1], x[2], fabs(eta1-eta)/eta);
@@ -849,7 +852,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     for( q=NUM_C ; q<NUM_Q ; ++q )
         prim[q] = cons[q]/cons[DDD];
     
-    if(e*e < s2 && DEBUG && r < DEBUG_RMAX)
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX && fabs(z) < DEBUG_ZMAX)
     {
         double cons1[NUM_Q];
         prim2cons(prim, cons1, x, 1.0);

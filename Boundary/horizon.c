@@ -69,7 +69,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
 
    //Horizon jazz
    double rh = 2*M;
-   double cut = 0.75*rh;
+   double cut = 0.9*rh;
 
    //Check if the cut-out region is even on this process.
    if(r_jph[-1] < cut && z_kph[-1] < cut && z_kph[Nz-1] > -cut)

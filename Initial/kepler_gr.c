@@ -33,14 +33,14 @@ void initial(double *prim, double *x)
     {
         u0eq = sqrt(R/(R-3*M));
         uReq = 0.0;
-        upeq = sqrt(M/(R*R*R - 3*M*R*R)) / st;
+        upeq = sqrt(M/(R*R*R - 3*M*R*R));
     }
     else
     {
         double x = 6*M/R - 1.0;
         u0eq = 2.0 * (sqrt(2.0)*R - M*sqrt(x*x*x)) / (3.0*(R-2.0*M));
         uReq = -sqrt(x*x*x) / 3.0;
-        upeq = 2.0*sqrt(3.0)*M/(R*R) / st;
+        upeq = 2.0*sqrt(3.0)*M/(R*R);
     }
     u0pol = (R*R - 2*M*sqrt(2.0*M*R)) / (R*R - 2*M*R);
     uRpol = -sqrt(2*M/R);
