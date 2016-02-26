@@ -5,7 +5,7 @@
 
 #define DEBUG 1
 #define DEBUG2 0
-#define DEBUG_RMAX 7.5
+#define DEBUG_RMAX 0.5
 #define DEBUG_ZMAX 3.5
 #define ND 3
 
@@ -62,17 +62,18 @@ double get_omega(double *prim, double *x)
 void prim2cons( double *prim, double *cons, double *x, double dV)
 {
     double r = x[0];
-    double rho = prim[RHO];
-    double Pp  = prim[PPP];
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
-    double B[3] = {prim[BRR], prim[BPP], prim[BZZ]};
-
     double al, be[3], gam[9], igam[9], jac;
     al = metric_lapse(x);
     metric_shift(x, be);
     metric_gam(x, gam);
     metric_igam(x, igam);
     jac = metric_jacobian(x) / r;
+    double sqrtgam = jac / al;
+
+    double rho = prim[RHO];
+    double Pp  = prim[PPP];
+    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double U[4];
     frame_U(x, U);
@@ -115,7 +116,6 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
     
     double rhoh = rho + gamma_law/(gamma_law-1.0)*Pp + b2;
     double rhoe = Pp / (gamma_law-1.0);
-    double sqrtgam = jac / al;
 
     if(DEBUG2)
     {
@@ -230,14 +230,8 @@ void cons2prim(double *cons, double *prim, double *x, double dV)
 void flux(double *prim, double *flux, double *x, double *n)
 {
     double r = x[0];
-    double rho = prim[RHO];
-    double Pp  = prim[PPP];
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
-    double B[3] = {prim[BRR], prim[BPP], prim[BZZ]};
-
     double al, be[3], gam[9], igam[9], jac, sqrtgam;
     double U[4];
-
     al = metric_lapse(x);
     metric_shift(x, be);
     metric_gam(x, gam);
@@ -245,6 +239,11 @@ void flux(double *prim, double *flux, double *x, double *n)
     jac = metric_jacobian(x) / r;
     sqrtgam = jac / al;
     frame_U(x, U);
+
+    double rho = prim[RHO];
+    double Pp  = prim[PPP];
+    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double w, u0, u2, u[3], v[3];
     double igaml[3];
@@ -313,16 +312,10 @@ void flux(double *prim, double *flux, double *x, double *n)
 void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
 {
     double x[3] = {0.5*(xm[0]+xp[0]), 0.5*(xm[1]+xp[1]), 0.5*(xm[2]+xp[2])};
-    double r = x[0];
-    double rho = prim[RHO];
-    double Pp  = prim[PPP];
-    double l[4] = {0.0, prim[URR], prim[UPP], prim[UZZ]};
-    double B[3] = {prim[BRR], prim[BPP], prim[BZZ]};
-
     int i,j,mu,nu;
-    double al, be[3], gam[9], igam[9], ig[16], jac;
+    double al, be[3], gam[9], igam[9], ig[16], jac, sqrtgam;
     double U[4], dU[16];
-
+    double r = x[0];
     al = metric_lapse(x);
     metric_shift(x, be);
     metric_gam(x, gam);
@@ -330,6 +323,12 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     jac = metric_jacobian(x) / r;
     frame_U(x, U);
     frame_der_U(x, dU);
+    sqrtgam = jac / al;
+
+    double rho = prim[RHO];
+    double Pp  = prim[PPP];
+    double l[4] = {0.0, prim[URR], prim[UPP], prim[UZZ]};
+    double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double ia2 = 1.0/(al*al);
     ig[0] = -ia2;
@@ -412,29 +411,58 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
 void visc_flux(double *prim, double *gprim, double *flux, double *x, 
                 double *n){}
 
+void flux_to_E(double *Flux, double *Ustr, double *x, double *E1_riemann, 
+                double *B1_riemann, double *E2_riemann, double *B2_riemann, 
+                int dim)
+{
+   double r = x[0];
+
+   if( dim==0 )  //PHI
+   {
+      *E1_riemann = Flux[BRR];   //Ez 
+      *B1_riemann = Ustr[BRR]*r; // r*Br
+      *E2_riemann = Flux[BZZ];    //Er 
+      *B2_riemann = Ustr[BZZ]*r;  //-r*Bz
+   }
+   else if( dim==1 ) //RRR
+   {
+      *E1_riemann = -Flux[BPP]*r;  //Ez 
+      *B1_riemann = Ustr[BRR]*r; // r*Br
+      *E2_riemann = 1.0*Flux[BZZ];     //Ephi
+   }
+   else //ZZZ
+   {
+      *E1_riemann = -Flux[BPP]*r;   //Er 
+      *B1_riemann = Ustr[BZZ]*r;  //-r*Bz
+      *E2_riemann = 1.0*-Flux[BRR];  //Ephi
+   }
+}
 void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss, 
             double *n, double *x, double *Bpack)
 {
     double r = x[0];
+    double al, be[3], gam[9], igam[9], sqrtgam;
+    al = metric_lapse(x);
+    metric_shift(x, be);
+    metric_gam(x, gam);
+    metric_igam(x, igam);
+    sqrtgam = metric_jacobian(x) / (al * r);
+
     double rho1 = prim1[RHO];
     double P1   = prim1[PPP];
     double l1[3] = {prim1[URR], prim1[UPP], prim1[UZZ]};
-    double B1[3] = {prim1[BRR], prim1[BPP], prim1[BZZ]};
+    double B1[3] = {prim1[BRR]/sqrtgam,prim1[BPP]/(r*sqrtgam),
+                    prim1[BZZ]/sqrtgam};
 
     double cs21 = gamma_law*P1/(rho1+gamma_law/(gamma_law-1.0)*P1);
 
     double rho2 = prim2[RHO];
     double P2   = prim2[PPP];
     double l2[3] = {prim2[URR], prim2[UPP], prim2[UZZ]};
-    double B2[3] = {prim2[BRR], prim2[BPP], prim2[BZZ]};
+    double B2[3] = {prim2[BRR]/sqrtgam,prim2[BPP]/(r*sqrtgam),
+                    prim2[BZZ]/sqrtgam};
 
     double cs22 = gamma_law*P2/(rho2+gamma_law/(gamma_law-1.0)*P2);
-
-    double al, be[3], gam[9], igam[9];
-    al = metric_lapse(x);
-    metric_shift(x, be);
-    metric_gam(x, gam);
-    metric_igam(x, igam);
 
     int i,j;
     double u21 = 0.0;
@@ -568,17 +596,18 @@ double mindt(double *prim, double wc, double *xp, double *xm)
 {
     double x[3] = {0.5*(xm[0]+xp[0]), 0.5*(xm[1]+xp[1]), 0.5*(xm[2]+xp[2])};
     double r = x[0];
+    double al, be[3], gam[9], igam[9], sqrtgam;
+    al = metric_lapse(x);
+    metric_shift(x, be);
+    metric_gam(x, gam);
+    metric_igam(x, igam);
+    sqrtgam = metric_jacobian(x) / (r*al);
+
     double rho = prim[RHO];
     double Pp  = prim[PPP];
     double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
-    double B[3] = {prim[BRR], prim[BPP], prim[BZZ]};
+    double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
     double cs  = sqrt(gamma_law*Pp/(rho+gamma_law/(gamma_law-1)*Pp));
-
-    double a, b[3], gam[9], igam[9];
-    a = metric_lapse(x);
-    metric_shift(x, b);
-    metric_gam(x, gam);
-    metric_igam(x, igam);
 
     int i,j;
     double uS[3];
@@ -612,16 +641,16 @@ double mindt(double *prim, double wc, double *xp, double *xm)
     double sig = 1-cf*cf;
 
     double dvr = cf * sqrt(igam[0]*(1-cf*cf*v2) - sig*vS[0]*vS[0]) / w;
-    double vrl = fabs(a * (vS[0]*sig - dvr) / (1-v2*cf*cf) - b[0]);
-    double vrr = fabs(a * (vS[0]*sig + dvr) / (1-v2*cf*cf) - b[0]);
+    double vrl = fabs(al * (vS[0]*sig - dvr) / (1-v2*cf*cf) - be[0]);
+    double vrr = fabs(al * (vS[0]*sig + dvr) / (1-v2*cf*cf) - be[0]);
 
     double dvp = cf * sqrt(igam[4]*(1-cf*cf*v2) - sig*vS[1]*vS[1]) / w;
-    double vpl = fabs(r * (a * (vS[1]*sig - dvp) / (1-v2*cf*cf) - b[1] - wc));
-    double vpr = fabs(r * (a * (vS[1]*sig + dvp) / (1-v2*cf*cf) - b[1] - wc));
+    double vpl = fabs(r * (al * (vS[1]*sig - dvp) / (1-v2*cf*cf) - be[1] -wc));
+    double vpr = fabs(r * (al * (vS[1]*sig + dvp) / (1-v2*cf*cf) - be[1] -wc));
     
     double dvz = cf * sqrt(igam[8]*(1-cf*cf*v2) - sig*vS[2]*vS[2]) / w;
-    double vzl = fabs(a * (vS[2]*sig - dvz) / (1-v2*cf*cf) - b[2]);
-    double vzr = fabs(a * (vS[2]*sig + dvz) / (1-v2*cf*cf) - b[2]);
+    double vzl = fabs(al * (vS[2]*sig - dvz) / (1-v2*cf*cf) - be[2]);
+    double vzr = fabs(al * (vS[2]*sig + dvz) / (1-v2*cf*cf) - be[2]);
 
     double maxvr = vrr > vrl ? vrr : vrl;
     double maxvp = vpr > vpl ? vpr : vpl;
@@ -844,9 +873,9 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     prim[UZZ] = l[2];
     prim[PPP] = Pp;
 
-    prim[BRR] = B[0];
-    prim[BPP] = B[1];
-    prim[BZZ] = B[2];
+    prim[BRR] = sqrtgam   * B[0];
+    prim[BPP] = sqrtgam*r * B[1];
+    prim[BZZ] = sqrtgam   * B[2];
 
     int q;
     for( q=NUM_C ; q<NUM_Q ; ++q )

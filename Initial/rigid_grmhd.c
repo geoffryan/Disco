@@ -50,7 +50,7 @@ void initial( double * prim , double * x ){
    prim[UPP] = r * UP;
    prim[UZZ] = 0.0;
    prim[BRR] = BR;
-   prim[BPP] = BP/r;
+   prim[BPP] = BP;
    prim[BZZ] = 0.0;
 
    if( NUM_N>0 ) prim[NUM_C] = X;

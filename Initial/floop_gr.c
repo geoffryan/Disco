@@ -47,7 +47,7 @@ void initial( double * prim , double * x ){
    prim[UZZ] = 0.0; 
 
    prim[BRR] =  Bx*cos(phi) + By*sin(phi);
-   prim[BPP] = (-Bx*sin(phi) + By*cos(phi))/r;
+   prim[BPP] = -Bx*sin(phi) + By*cos(phi);
    prim[BZZ] = 0.0; 
 
    double X = cos(phi)>0 ? 1.0 : 0.0;
