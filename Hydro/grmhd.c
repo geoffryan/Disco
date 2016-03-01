@@ -459,22 +459,22 @@ void flux_to_E(double *Flux, double *Ustr, double *x, double *E1_riemann,
 
    if( dim==0 )  //PHI
    {
-      *E1_riemann = Flux[BRR];   //Ez 
-      *B1_riemann = Ustr[BRR]*r; // r*Br
+      *E1_riemann = Flux[BRR]*r;   //Ez 
+      *B1_riemann = Ustr[BRR]*r*r; // r*Br
       *E2_riemann = Flux[BZZ];    //Er 
       *B2_riemann = Ustr[BZZ]*r;  //-r*Bz
    }
    else if( dim==1 ) //RRR
    {
       *E1_riemann = -Flux[BPP]*r;  //Ez 
-      *B1_riemann = Ustr[BRR]*r; // r*Br
+      *B1_riemann = Ustr[BRR]*r*r; // r*Br
       *E2_riemann = 1.0*Flux[BZZ];     //Ephi
    }
    else //ZZZ
    {
       *E1_riemann = -Flux[BPP]*r;   //Er 
       *B1_riemann = Ustr[BZZ]*r;  //-r*Bz
-      *E2_riemann = 1.0*-Flux[BRR];  //Ephi
+      *E2_riemann = 1.0*-Flux[BRR]*r;  //Ephi
    }
 }
 void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss, 
