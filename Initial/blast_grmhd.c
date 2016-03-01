@@ -16,12 +16,14 @@ void initial( double * prim , double * x ){
    double phi = x[1];
 
    double r0 = 1.0;
-   double B0 = 1.0e-1;
+   double B0 = 0.1;
+
+   double relfac = 1.0e-1;
    
    double rhoL = 1.0e-2;
-   double PL = 1.0;
+   double PL = relfac*relfac*1.0;
    double rhoR = 1.0e-4;
-   double PR = 3.0e-5;
+   double PR = relfac*relfac*3.0e-5;
 
    double rho = r > r0 ? rhoR : rhoL;
    double Pp  = r > r0 ? PR : PL;
@@ -35,8 +37,8 @@ void initial( double * prim , double * x ){
 
    if(NUM_C == 8)
    {
-       prim[BRR] =  B0 * cos(phi);
-       prim[BPP] = -B0 * sin(phi)/r;
+       prim[BRR] =  relfac * B0 * cos(phi);
+       prim[BPP] = -relfac * B0 * sin(phi);
        prim[BZZ] = 0.0; 
    }
 

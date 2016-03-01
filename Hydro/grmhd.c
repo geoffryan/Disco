@@ -5,7 +5,8 @@
 
 #define DEBUG 1
 #define DEBUG2 0
-#define DEBUG_RMAX 0.5
+#define DEBUG3 0
+#define DEBUG_RMAX 5.5
 #define DEBUG_ZMAX 3.5
 #define ND 3
 
@@ -33,13 +34,14 @@ void setHydroParams( struct domain * theDomain ){
 }
 
 int set_B_flag(void){
-   return(0);
+   return(1);
 }
 
 double get_omega(double *prim, double *x)
 {
     int i,j;
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double r = x[0];
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     
     double lapse;
     double shift[3];
@@ -72,7 +74,7 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
 
     double rho = prim[RHO];
     double Pp  = prim[PPP];
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double U[4];
@@ -132,13 +134,23 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
     cons[TAU] = jac * (-(rhoe+0.5*b2)*uU*u0 - (Pp+0.5*b2)*(uU*u0+U[0])
                             - rho*(uU+1.0)*u0 + Ub*b0) * dV;
 
-    cons[BRR] = sqrtgam * B[0] * dV;
+    cons[BRR] = sqrtgam * B[0]/r * dV;
     cons[BPP] = sqrtgam * B[1] * dV;
     cons[BZZ] = sqrtgam * B[2] * dV;
 
     int q;
     for(q = NUM_C; q < NUM_Q; q++)
         cons[q] = prim[q]*cons[DDD];
+  
+    if(DEBUG3)
+    {
+        FILE *f = fopen("p2c.out", "a");
+        fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                    x[0], x[1], prim[URR], prim[UPP], cons[SRR], cons[LLL]);
+        fprintf(f, "    %.10lg %.10lg %.10lg\n",
+                        B2, prim[BRR], prim[BPP]);
+        fclose(f);
+    }
 }
 
 void getUstar(double *prim, double *Ustar, double *x, double Sk, double Ss, 
@@ -242,7 +254,7 @@ void flux(double *prim, double *flux, double *x, double *n)
 
     double rho = prim[RHO];
     double Pp  = prim[PPP];
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double w, u0, u2, u[3], v[3];
@@ -300,13 +312,23 @@ void flux(double *prim, double *flux, double *x, double *n)
     flux[TAU] = jac * hn * (-(rhoe+0.5*b2)*uU*un - Pt*(uU*un+Un)
                             - rho*(uU+1.0)*un + Ub*bn);
     
-    flux[BRR] = sqrtgam * hn * (B[0]*vn - Bn*v[0]);
+    flux[BRR] = sqrtgam * hn * (B[0]*vn - Bn*v[0])/r;
     flux[BPP] = sqrtgam * hn * (B[1]*vn - Bn*v[1]);
     flux[BZZ] = sqrtgam * hn * (B[2]*vn - Bn*v[2]);
     
     int q;
     for(q = NUM_C; q < NUM_Q; q++)
         flux[q] = prim[q]*flux[DDD];
+   
+    if(DEBUG3)
+    {
+        FILE *f = fopen("flux.out", "a");
+        fprintf(f, "%.1lf %.1lf %.10lg %.10lg %.10lg %.10lg\n",
+                n[0], n[1], x[0], x[1], flux[SRR], flux[LLL]);
+        fprintf(f, "    %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                        B2, bn, prim[BRR], prim[BPP], w);
+        fclose(f);
+    }
 }
 
 void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
@@ -327,7 +349,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
 
     double rho = prim[RHO];
     double Pp  = prim[PPP];
-    double l[4] = {0.0, prim[URR], prim[UPP], prim[UZZ]};
+    double l[4] = {0.0, prim[URR], r*r*prim[UPP], prim[UZZ]};
     double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
 
     double ia2 = 1.0/(al*al);
@@ -377,6 +399,14 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     double Pt = Pp + 0.5*b2;
 
     double S0, Sk[3];
+
+    double rp = xp[0];
+    double rm = xm[0];
+    double r2_3 = (rp*rp + rp*rm + rm*rm)/3.0;
+    double dphi = get_dp(xp[1],xm[1]);
+    double rcorr = r2_3/(r*r);
+    double pcorr = sin(0.5*dphi)/(0.5*dphi);
+
     for(i=0; i<3; i++)
     {
         Sk[i] = 0.0;
@@ -387,7 +417,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
         metric_der_g(x, i+1, dg);
         for(mu=0; mu<4; mu++)
             for(nu=0; nu<4; nu++)
-                Sk[i] += (rhoh*u[mu]*u[nu] + ig[4*mu+nu]*Pt - b[mu]*b[nu])
+                Sk[i] += (rhoh*u[mu]*u[nu]*rcorr*pcorr + ig[4*mu+nu]*Pt - b[mu]*b[nu]*pcorr)
                             * dg[4*mu+nu];
         Sk[i] *= 0.5;
     }
@@ -406,6 +436,16 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     cons[LLL] += jac * Sk[1] * dVdt;
     cons[SZZ] += jac * Sk[2] * dVdt;
     cons[TAU] += jac * S0 * dVdt;
+
+    if(DEBUG3)
+    {
+        FILE *f = fopen("source.out", "a");
+        fprintf(f, "%.12lg %.12lg %.12lg %.12lg\n",
+                x[0], x[1], jac*Sk[0]*dVdt, jac*S0*dVdt);
+        fprintf(f, "    %.10lg %.10lg %.10lg %.10lg\n",
+                        B2, prim[BRR], prim[BPP], w);
+        fclose(f);
+    }
 }
 
 void visc_flux(double *prim, double *gprim, double *flux, double *x, 
@@ -450,7 +490,7 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
 
     double rho1 = prim1[RHO];
     double P1   = prim1[PPP];
-    double l1[3] = {prim1[URR], prim1[UPP], prim1[UZZ]};
+    double l1[3] = {prim1[URR], r*r*prim1[UPP], prim1[UZZ]};
     double B1[3] = {prim1[BRR]/sqrtgam,prim1[BPP]/(r*sqrtgam),
                     prim1[BZZ]/sqrtgam};
 
@@ -458,7 +498,7 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
 
     double rho2 = prim2[RHO];
     double P2   = prim2[PPP];
-    double l2[3] = {prim2[URR], prim2[UPP], prim2[UZZ]};
+    double l2[3] = {prim2[URR], r*r*prim2[UPP], prim2[UZZ]};
     double B2[3] = {prim2[BRR]/sqrtgam,prim2[BPP]/(r*sqrtgam),
                     prim2[BZZ]/sqrtgam};
 
@@ -605,7 +645,7 @@ double mindt(double *prim, double wc, double *xp, double *xm)
 
     double rho = prim[RHO];
     double Pp  = prim[PPP];
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     double B[3] = {prim[BRR]/sqrtgam,prim[BPP]/(r*sqrtgam),prim[BZZ]/sqrtgam};
     double cs  = sqrt(gamma_law*Pp/(rho+gamma_law/(gamma_law-1)*Pp));
 
@@ -689,7 +729,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
 {
     double prec = 1.0e-12;
     double max_iter = 30;
-    double Nextra = 2;
+    double Nextra = 10;
 
     double r = x[0];
     double z = x[2];
@@ -708,7 +748,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
     sqrtgam = jac / al;
     frame_U(x, U);
     
-    double B[3] = {cons[BRR]/sqrtgam, cons[BPP]/sqrtgam, cons[BZZ]/sqrtgam};
+    double B[3] = {r*cons[BRR]/sqrtgam, cons[BPP]/sqrtgam, cons[BZZ]/sqrtgam};
 
     double s2 = 0.0;
     double Us = 0.0;
@@ -869,7 +909,7 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
 
     prim[RHO] = rho;
     prim[URR] = l[0];
-    prim[UPP] = l[1];
+    prim[UPP] = l[1]/(r*r);
     prim[UZZ] = l[2];
     prim[PPP] = Pp;
 
@@ -890,6 +930,16 @@ void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
                 prim[RHO], prim[PPP], prim[URR], prim[UPP], prim[UZZ]);
         printf("cons1: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
                 cons1[DDD], cons1[TAU], cons1[SRR], cons1[LLL], cons1[SZZ]);
+    }
+    
+    if(DEBUG3)
+    {
+        FILE *f = fopen("c2p.out", "a");
+        fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                    x[0], x[1], prim[URR], prim[UPP], cons[SRR], cons[LLL]);
+        fprintf(f, "    %.10lg %.10lg %.10lg\n",
+                        B2, prim[BRR], prim[BPP]);
+        fclose(f);
     }
 }
 
