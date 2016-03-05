@@ -18,7 +18,7 @@ void initial( double * prim , double * x ){
    double r0 = 1.0;
    double B0 = 0.1;
 
-   double relfac = 1.0e-1;
+   double relfac = 1.0;
    
    double rhoL = 1.0e-2;
    double PL = relfac*relfac*1.0;
