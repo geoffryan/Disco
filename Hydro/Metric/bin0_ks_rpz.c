@@ -253,25 +253,19 @@ void metric_der_g(double x[3], int i, double dg[16])
     double k2p = r*(-sp*a2) / R2;
     double k2z = -z/R2;
 
-    /*
-    gam[0] = 1.0 + 2*H1*k1r*k1r + 2*H2*k2r*k2r;
-    gam[1] = 2*H1*k1r*k1p + 2*H2*k2r*k2p;
-    gam[2] = 2*H1*k1r*k1z + 2*H2*k2r*k2z;
-    gam[3] = gam[1];
-    gam[4] = r*r + 2*H1*k1p*k1p + 2*H2*k2p*k2p;
-    gam[5] = 2*H1*k1p*k1z + 2*H2*k2p*k2z;
-    gam[6] = gam[2];
-    gam[7] = gam[5];
-    gam[8] = 1.0 + 2*H1*k1z*k1z + 2*H2*k2z*k2z;
-    */
+    double al1 = 1.0/sqrt(1.0 + 2*M1/R1);
+    double al2 = 1.0/sqrt(1.0 + 2*M2/R2);
 
-    double dr2, dH1, dH2, dk1r, dk1p, dk1z, dk2r, dk2p, dk2z;
+    double dal1, dal2, dr2, dH1, dH2, dk1r, dk1p, dk1z, dk2r, dk2p, dk2z;
 
     if(i == 1) // d/dr
     {
         dr2 = 2*r;
         double dR1 = (r - cp*a1) / R1;
         double dR2 = (r - cp*a2) / R2;
+
+        dal1 = -0.5 * al1*al1*al1 * (-2*M1*iR12*dR1);
+        dal2 = -0.5 * al2*al2*al2 * (-2*M2*iR22*dR2);
 
         dH1 = -M1 * iR12 * dR1;
         dH2 = -M2 * iR22 * dR2;
@@ -289,6 +283,9 @@ void metric_der_g(double x[3], int i, double dg[16])
         double dR1 = r*a1*sp / R1;
         double dR2 = r*a2*sp / R2;
 
+        dal1 = -0.5 * al1*al1*al1 * (-2*M1*iR12*dR1);
+        dal2 = -0.5 * al2*al2*al2 * (-2*M2*iR22*dR2);
+
         dH1 = -M1 * iR12 * dR1;
         dH2 = -M2 * iR22 * dR2;
 
@@ -304,6 +301,9 @@ void metric_der_g(double x[3], int i, double dg[16])
         dr2 = 0.0;
         double dR1 = z / R1;
         double dR2 = z / R2;
+
+        dal1 = -0.5 * al1*al1*al1 * (-2*M1*iR12*dR1);
+        dal2 = -0.5 * al2*al2*al2 * (-2*M2*iR22*dR2);
 
         dH1 = -M1 * iR12 * dR1;
         dH2 = -M2 * iR22 * dR2;
