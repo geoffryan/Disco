@@ -20,23 +20,29 @@
 static double M = 1.0; 
 static double q = 1.0;
 static double a = 100.0;
+static double M1;
+static double M2;
+static double a1;
+static double a2;
+static double om;
 
 void setMetricParams(struct domain *theDomain)
 {
    //om = theDomain->theParList.MetricPar1;
    //M = theDomain->theParList.MetricPar2;
+   
+    M1 = M/(1+q);
+    M2 = q*M/(1+q);
+    a1 = q*a/(1+q);
+    a2 = -a/(1+q);
+    om = sqrt(M/(a*a*a));
 }
 
-double metric_lapse(double x[3])
+double metric_lapse(double X[3])
 {
-    double x = x[0]*cos(x[1]);
-    double y = x[0]*sin(x[1]);
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double x = X[0]*cos(X[1]);
+    double y = X[0]*sin(X[1]);
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -47,20 +53,15 @@ double metric_lapse(double x[3])
     return al1*al2;
 }
 
-void metric_shift(double x[3], double b[3])
+void metric_shift(double X[3], double b[3])
 {
-    double r = x[0];
-    double cosp = cos(x[1]);
-    double sinp = sin(x[1]);
+    double r = X[0];
+    double cosp = cos(X[1]);
+    double sinp = sin(X[1]);
 
     double x = r * cosp;
     double y = r * sinp;
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -82,27 +83,21 @@ void metric_shift(double x[3], double b[3])
     double be2y = -2*H2*k2y/(1+2*H2);
     double be2z = -2*H2*k2z/(1+2*H2);
     
-    double om = sqrt(M/(a*a*a));
 
     b[0] = cosp*(be1x+be2x) + sinp*(be1y+be2y);
     b[1] = (-sinp*(be1x+be2x) + cosp*(be1y+be2y))/r + om;
     b[2] = be1z + be2z;
 }
 
-void metric_gam(double x[3], double gam[9])
+void metric_gam(double X[3], double gam[9])
 {
-    double r = x[0];
-    double cosp = cos(x[1]);
-    double sinp = sin(x[1]);
+    double r = X[0];
+    double cp = cos(X[1]);
+    double sp = sin(X[1]);
 
-    double x = r * cosp;
-    double y = r * sinp;
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double x = r * cp;
+    double y = r * sp;
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -129,20 +124,15 @@ void metric_gam(double x[3], double gam[9])
     gam[8] = 1.0 + 2*H1*k1z*k1z + 2*H2*k2z*k2z;
 }
 
-void metric_igam(double x[3], double igam[9])
+void metric_igam(double X[3], double igam[9])
 {
-    double r = x[0];
-    double cosp = cos(x[1]);
-    double sinp = sin(x[1]);
+    double r = X[0];
+    double cosp = cos(X[1]);
+    double sinp = sin(X[1]);
 
     double x = r * cosp;
     double y = r * sinp;
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -160,7 +150,7 @@ void metric_igam(double x[3], double igam[9])
 
     double igxx = idetgam*(1.0 + 2*H1*Px2*iR12 + 2*H2*Px2*iR22);
     double igxy = idetgam*(2*H1*(a1-x)*y*iR12 + 2*H2*(a2-x)*y*iR22);
-    double igxy = idetgam*(2*H1*(a1-x)*z*iR12 + 2*H2*(a2-x)*z*iR22);
+    double igxz = idetgam*(2*H1*(a1-x)*z*iR12 + 2*H2*(a2-x)*z*iR22);
     double igyy = idetgam*(1 + 2*H1*(R1*R1-y*y)*iR12 + 2*H2*(R2*R2-y*y)*iR22
                             + 4*H1*H2*a*a*z*z*iR12*iR22);
     double igyz = idetgam*(-2*H1*y*z*iR12 - 2*H2*y*z*iR22
@@ -180,20 +170,15 @@ void metric_igam(double x[3], double igam[9])
     igam[8] = igzz;
 }
 
-double metric_jacobian(double x[3])
+double metric_jacobian(double X[3])
 {
-    double r = x[0];
-    double cosp = cos(x[1]);
-    double sinp = sin(x[1]);
+    double r = X[0];
+    double cosp = cos(X[1]);
+    double sinp = sin(X[1]);
 
     double x = r * cosp;
     double y = r * sinp;
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -214,7 +199,7 @@ double metric_jacobian(double x[3])
     return al * detgam * r;
 }
 
-void metric_der_g(double x[3], int i, double dg[16])
+void metric_der_g(double X[3], int i, double dg[16])
 {
     int mu;
     for(mu=0; mu<16; mu++)
@@ -223,18 +208,13 @@ void metric_der_g(double x[3], int i, double dg[16])
     if(i == 0)
         return;
 
-    double r = x[0];
-    double cp = cos(x[1]);
-    double sp = sin(x[1]);
+    double r = X[0];
+    double cp = cos(X[1]);
+    double sp = sin(X[1]);
 
     double x = r * cp;
     double y = r * sp;
-    double z = x[2];
-
-    double M1 = M/(1+q);
-    double M2 = q*M/(1+q);
-    double a1 = q*a/(1+q);
-    double a2 = -a/(1+q);
+    double z = X[2];
 
     double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
     double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
@@ -272,8 +252,8 @@ void metric_der_g(double x[3], int i, double dg[16])
 
         dk1r = (-R1-(cp*a1-r)*dR1) * iR12;
         dk2r = (-R2-(cp*a2-r)*dR2) * iR22;
-        dk1p = -sp*a1 * (R1 - r*dR12) * iR12;
-        dk2p = -sp*a2 * (R2 - r*dR22) * iR22;
+        dk1p = -sp*a1 * (R1 - r*dR1) * iR12;
+        dk2p = -sp*a2 * (R2 - r*dR2) * iR22;
         dk1z = z * iR12 * dR1;
         dk2z = z * iR22 * dR2;
     }
@@ -291,8 +271,8 @@ void metric_der_g(double x[3], int i, double dg[16])
 
         dk1r = (-sp*a1*R1-(cp*a1-r)*dR1) * iR12;
         dk2r = (-sp*a2*R2-(cp*a2-r)*dR2) * iR22;
-        dk1p = -r*a1 * (cp*R1 - sp*dR12) * iR12;
-        dk2p = -r*a2 * (cp*R2 - sp*dR22) * iR22;
+        dk1p = -r*a1 * (cp*R1 - sp*dR1) * iR12;
+        dk2p = -r*a2 * (cp*R2 - sp*dR2) * iR22;
         dk1z = z * iR12 * dR1;
         dk2z = z * iR22 * dR2;
     }
@@ -316,18 +296,41 @@ void metric_der_g(double x[3], int i, double dg[16])
         dk2z = -(R2 - z*dR2) * iR22;
     }
 
-    /*
-    gam[0] = 1.0 + 2*H1*k1r*k1r + 2*H2*k2r*k2r;
-    gam[1] = 2*H1*k1r*k1p + 2*H2*k2r*k2p;
-    gam[2] = 2*H1*k1r*k1z + 2*H2*k2r*k2z;
-    gam[3] = gam[1];
-    gam[4] = r*r + 2*H1*k1p*k1p + 2*H2*k2p*k2p;
-    gam[5] = 2*H1*k1p*k1z + 2*H2*k2p*k2z;
-    gam[6] = gam[2];
-    gam[7] = gam[5];
-    gam[8] = 1.0 + 2*H1*k1z*k1z + 2*H2*k2z*k2z;
-    */
+    double dal_sq = al1*dal2 + dal1*al2;
 
+    double be1r = -2*H1*k1r/(1+2*H1);
+    double be1p = -2*H1*k1p/(r*r*(1+2*H1));
+    double be1z = -2*H1*k1z/(1+2*H1);
+    double be2r = -2*H1*k2r/(1+2*H1);
+    double be2p = -2*H1*k2p/(r*r*(1+2*H1));
+    double be2z = -2*H1*k2z/(1+2*H1);
+
+    double dbe1r = be1r*(dH1/H1 + dk1r/k1r - 2*dH1/(1+2*H1));
+    double dbe1p = be1p*(dH1/H1 + dk1p/k1p - 2*dH1/(1+2*H1) - dr2/(r*r));
+    double dbe1z = be1z*(dH1/H1 + dk1z/k1z - 2*dH1/(1+2*H1));
+    double dbe2r = be2r*(dH2/H2 + dk2r/k2r - 2*dH2/(1+2*H2));
+    double dbe2p = be2p*(dH2/H2 + dk2p/k2p - 2*dH2/(1+2*H2) - dr2/(r*r));
+    double dbe2z = be2z*(dH2/H2 + dk2z/k2z - 2*dH2/(1+2*H2));
+
+    double ber = be1r+be2r;
+    double bep = be1p+be2p+om;
+    double bez = be1z+be2z;
+    double dber = dbe1r+dbe2r;
+    double dbep = dbe1p+dbe2p;
+    double dbez = dbe1z+dbe2z;
+
+    double grr = 1.0 + 2*H1*k1r*k1r + 2*H2*k2r*k2r;
+    double grp = 2*H1*k1r*k1p + 2*H2*k2r*k2p;
+    double grz = 2*H1*k1r*k1z + 2*H2*k2r*k2z;
+    double gpp = r*r + 2*H1*k1p*k1p + 2*H2*k2p*k2p;
+    double gpz = 2*H1*k1p*k1z + 2*H2*k2p*k2z;
+    double gzz = 1.0 + 2*H1*k1z*k1z + 2*H2*k2z*k2z;
+
+    //Spatially covariant shift beta_i = g_0i
+    double belr = grr*ber + grp*bep + grz*bez;
+    double belp = grp*ber + gpp*bep + gpz*bez;
+    double belz = grz*ber + gpz*bep + gzz*bez;
+    
     double dgrr, dgrp, dgrz, dgpp, dgpz, dgzz;
 
     dgrr = 2*dH1*k1r*k1r + 4*H1*k1r*dk1r + 2*dH2*k2r*k2r + 4*H2*k2r*dk2r;
@@ -335,15 +338,23 @@ void metric_der_g(double x[3], int i, double dg[16])
              + 2*dH2*k2r*k2p + 2*H2*dk2r*k2p + 2*H2*k2r*dk2p;
     dgrz = 2*dH1*k1r*k1z + 2*H1*dk1r*k1z + 2*H1*k1r*dk1z
              + 2*dH2*k2r*k2z + 2*H2*dk2r*k2z + 2*H2*k2r*dk2z;
-    dgpp = d2r + 2*dH1*k1p*k1p + 4*H1*k1p*dk1p + 2*dH2*k2p*k2p
+    dgpp = dr2 + 2*dH1*k1p*k1p + 4*H1*k1p*dk1p + 2*dH2*k2p*k2p
                 + 4*H2*k2p*dk2p;
     dgpz = 2*dH1*k1p*k1z + 2*H1*dk1p*k1z + 2*H1*k1p*dk1z
                 + 2*dH2*k2p*k2z + 2*H2*dk2p*k2z + 2*H2*k2p*dk2z;
     dgzz = 2*dH1*k1z*k1z + 4*H1*k1z*dk1z + 2*dH2*k2z*k2z + 4*H2*k2z*dk2z;
-    dg[0] = ;
-    dg[1] = ;
-    dg[2] = ;
-    dg[3] = ;
+
+    double dbelr = dgrr*ber+grr*dber + dgrp*bep+grp*dbep + dgrz*bez+grz*dbez;
+    double dbelp = dgrp*ber+grp*dber + dgpp*bep+gpp*dbep + dgpz*bez+gpz*dbez;
+    double dbelz = dgrz*ber+grz*dber + dgpz*bep+gpz*dbep + dgzz*bez+gzz*dbez;
+
+    double db2 = dber*belr+ber*dbelr + dbep*belp+bep*dbelp
+                + dbez*belz+bez*dbelz;
+
+    dg[0] = -dal_sq + db2;
+    dg[1] = dbelr;
+    dg[2] = dbelp;
+    dg[3] = dbelz;
     dg[4] = dg[1];
     dg[5] = dgrr;
     dg[6] = dgrp;
@@ -358,55 +369,129 @@ void metric_der_g(double x[3], int i, double dg[16])
     dg[15] = dgzz;
 }
 
-void metric_der_lapse(double x[3], double da[4])
+void metric_der_lapse(double X[3], double da[4])
 {
-    double r = x[0];
-    double z = x[2];
-    double R = sqrt(r*r+z*z);
+    double r = X[0];
+    double cp = cos(X[1]);
+    double sp = sin(X[1]);
 
-    double st = r/R;
-    double ct = z/R;
+    double x = r * cp;
+    double y = r * sp;
+    double z = X[2];
 
-    double MoR2 = M/(R*R);
-    double a = 1.0/sqrt(1.0+2*M/R);
+    double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
+    double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
+
+    double H1 = M1/R1;
+    double H2 = M2/R2;
+
+    double iR1 = 1.0/R1;
+    double iR2 = 1.0/R2;
+
+    double al1 = 1.0/sqrt(1.0 + 2*H1);
+    double al2 = 1.0/sqrt(1.0 + 2*H2);
+
+    double dR1dr, dR1dp, dR1dz, dR2dr, dR2dp, dR2dz;
+
+    dR1dr = (r - cp*a1) * iR1;
+    dR2dr = (r - cp*a2) * iR2;
+    dR1dp = r*a1*sp * iR1;
+    dR2dp = r*a2*sp * iR2;
+    dR1dz = z * iR1;
+    dR2dz = z * iR2;
+
+    double al13 = al1*al1*al1;
+    double al23 = al2*al2*al2;
+    double M1_o_R12 = M1 * iR1*iR1;
+    double M2_o_R22 = M2 * iR2*iR2;
 
     da[0] = 0.0;
-    da[1] = a*a*a * MoR2 * st;
-    da[2] = 0.0;
-    da[3] = a*a*a * MoR2 * ct;
+    da[1] = al1 * al23*M2_o_R22*dR2dr + al13*M1_o_R12*dR1dr * al2;
+    da[2] = al1 * al23*M2_o_R22*dR2dp + al13*M1_o_R12*dR1dp * al2;
+    da[3] = al1 * al23*M2_o_R22*dR2dz + al13*M1_o_R12*dR1dz * al2;
 }
 
-void metric_der_shift(double x[3], double db[12])
+void metric_der_shift(double X[3], double db[12])
 {
-    double r = x[0];
-    double z = x[2];
-    double R = sqrt(r*r+z*z);
+    double r = X[0];
+    double cp = cos(X[1]);
+    double sp = sin(X[1]);
 
-    double st = r/R;
-    double ct = z/R;
+    double x = r * cp;
+    double y = r * sp;
+    double z = X[2];
 
-    double denom = 1.0/(R*R + 2*M*R);
-    double d_denom = -denom*denom * 2*(R+M);
+    double R1 = sqrt((x-a1)*(x-a1) + y*y + z*z);
+    double R2 = sqrt((x-a2)*(x-a2) + y*y + z*z);
+
+    double H1 = M1/R1;
+    double H2 = M2/R2;
+
+    double iR1 = 1.0/R1;
+    double iR2 = 1.0/R2;
+    double M1_o_R12 = M1 / (R1*R1);
+    double M2_o_R22 = M2 / (R2*R2);
+    
+    //Contravariant (w.r.t. Minkowski) k components in r/phi
+    double k1[3], k2[3];
+    k1[0] = (cp*a1 - r) * iR1;
+    k1[1] = (-sp*a1) * iR1 / r;
+    k1[2] = -z * iR1;
+    k2[0] = (cp*a2 - r) * iR2;
+    k2[1] = (-sp*a2) * iR2 / r;
+    k2[2] = -z * iR2;
+
+    double dR1[3], dR2[3], dH1[3], dH2[3];
+
+    dR1[0] = (r - cp*a1) * iR1;
+    dR1[1] = r*a1*sp * iR1;
+    dR1[2] = z * iR1;
+    dR2[0] = (r - cp*a2) * iR2;
+    dR2[1] = r*a2*sp * iR2;
+    dR2[2] = z * iR2;
 
     int i;
-
-    //dt
     for(i=0; i<3; i++)
-        db[i] = 0;
+    {
+        dH1[i] = -M1_o_R12 * dR1[i];
+        dH2[i] = -M2_o_R22 * dR2[i];
+    }
 
-    //dr
-    db[3] = 2*M * denom + 2*M*r * d_denom*st;
-    db[4] = 0.0;
-    db[5] = 2*M*z * d_denom*st;
+    double dk1[9], dk2[9];
 
-    //dphi
+    dk1[3*0+0] = (-R1 - (cp*a1-r)*dR1[0]) * iR1*iR1;
+    dk1[3*0+1] = sp*a1 * (iR1*iR1*dR1[0]/r + iR1/(r*r));
+    dk1[3*0+2] = z * iR1*iR1*dR1[0];
+    dk1[3*1+0] = (-sp*R1 - (cp*a1-r)*dR1[1]) * iR1*iR1;
+    dk1[3*1+1] = -a1*(cp*R1 - sp*dR1[1]) * iR1*iR1 / r;
+    dk1[3*1+2] = z * iR1*iR1*dR1[1];
+    dk1[3*2+0] = -(cp*a1-r)*iR1*iR1*dR1[2];
+    dk1[3*2+1] = sp*a1 * iR1*iR1 * dR1[2] / r;
+    dk1[3*2+2] = -(R1 - z*dR1[2]) * iR1*iR1;
+
+    dk2[3*0+0] = (-R2 - (cp*a2-r)*dR2[0]) * iR2*iR2;
+    dk2[3*0+1] = sp*a2 * (iR2*iR2*dR2[0]/r + iR2/(r*r));
+    dk2[3*0+2] = z * iR2*iR2*dR2[0];
+    dk2[3*1+0] = (-sp*R2 - (cp*a2-r)*dR2[1]) * iR2*iR2;
+    dk2[3*1+1] = -a2*(cp*R2 - sp*dR2[1]) * iR2*iR2 / r;
+    dk2[3*1+2] = z * iR2*iR2*dR2[1];
+    dk2[3*2+0] = -(cp*a2-r)*iR2*iR2*dR2[2];
+    dk2[3*2+1] = sp*a2 * iR2*iR2 * dR2[2] / r;
+    dk2[3*2+2] = -(R2 - z*dR2[2]) * iR2*iR2;
+
+    double denom1 = 1.0 / ((1+2*H1)*(1+2*H1));
+    double denom2 = 1.0 / ((1+2*H2)*(1+2*H2));
+
+    int j;
+    for(j=0; j<3; j++)
+        db[j] = 0.0;
+
     for(i=0; i<3; i++)
-        db[6+i] = 0;
-
-    //dz
-    db[9] = 2*M*r * d_denom*ct;
-    db[10] = 0.0;
-    db[11] = 2*M * denom + 2*M*z * d_denom*ct;
+        for(j=0; j<3; j++)
+        {
+            db[3*(i+1)+j] = -2*(dH1[i]*k1[j] + H1*dk1[3*i+j]*(1+2*H1)) * denom1
+                            - 2*(dH2[i]*k2[j] + H2*dk2[3*i+j]*(1+2*H2)) * denom2;
+        }
 }
 
 int metric_killing(int mu)
