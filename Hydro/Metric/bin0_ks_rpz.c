@@ -19,7 +19,7 @@
 
 static double M = 1.0; 
 static double q = 1.0;
-static double a = 100.0;
+static double a = 1.0e1;
 static double M1;
 static double M2;
 static double a1;
@@ -163,8 +163,8 @@ void metric_igam(double X[3], double igam[9])
     igam[1] = (cosp*sinp*(-igxx+igyy) + (cosp*cosp-sinp*sinp)*igxy) / r;
     igam[2] = cosp*igxz + sinp*igyz;
     igam[3] = igam[1];
-    igam[4] = (sinp*sinp*igxx - 2*cosp*sinp*igxy + sinp*sinp*igyy) / (r*r);
-    igam[5] = -sinp*igxz + cosp*igyz;
+    igam[4] = (sinp*sinp*igxx - 2*cosp*sinp*igxy + cosp*cosp*igyy) / (r*r);
+    igam[5] = (-sinp*igxz + cosp*igyz)/r;
     igam[6] = igam[2];
     igam[7] = igam[5];
     igam[8] = igzz;
@@ -296,14 +296,15 @@ void metric_der_g(double X[3], int i, double dg[16])
         dk2z = -(R2 - z*dR2) * iR22;
     }
 
-    double dal_sq = al1*dal2 + dal1*al2;
+    double al = al1*al2;
+    double dal = al1*dal2 + dal1*al2;
 
     double be1r = -2*H1*k1r/(1+2*H1);
     double be1p = -2*H1*k1p/(r*r*(1+2*H1));
     double be1z = -2*H1*k1z/(1+2*H1);
-    double be2r = -2*H1*k2r/(1+2*H1);
-    double be2p = -2*H1*k2p/(r*r*(1+2*H1));
-    double be2z = -2*H1*k2z/(1+2*H1);
+    double be2r = -2*H2*k2r/(1+2*H2);
+    double be2p = -2*H2*k2p/(r*r*(1+2*H2));
+    double be2z = -2*H2*k2z/(1+2*H2);
 
     double dbe1r = be1r*(dH1/H1 + dk1r/k1r - 2*dH1/(1+2*H1));
     double dbe1p = be1p*(dH1/H1 + dk1p/k1p - 2*dH1/(1+2*H1) - dr2/(r*r));
@@ -351,7 +352,7 @@ void metric_der_g(double X[3], int i, double dg[16])
     double db2 = dber*belr+ber*dbelr + dbep*belp+bep*dbelp
                 + dbez*belz+bez*dbelz;
 
-    dg[0] = -dal_sq + db2;
+    dg[0] = -2*al*dal + db2;
     dg[1] = dbelr;
     dg[2] = dbelp;
     dg[3] = dbelz;
@@ -457,12 +458,12 @@ void metric_der_shift(double X[3], double db[12])
         dH2[i] = -M2_o_R22 * dR2[i];
     }
 
-    double dk1[9], dk2[9];
+    double dk1[9], dk2[9];  //dk[3*i+j] = d_i k^j
 
     dk1[3*0+0] = (-R1 - (cp*a1-r)*dR1[0]) * iR1*iR1;
     dk1[3*0+1] = sp*a1 * (iR1*iR1*dR1[0]/r + iR1/(r*r));
     dk1[3*0+2] = z * iR1*iR1*dR1[0];
-    dk1[3*1+0] = (-sp*R1 - (cp*a1-r)*dR1[1]) * iR1*iR1;
+    dk1[3*1+0] = (-sp*a1*R1 - (cp*a1-r)*dR1[1]) * iR1*iR1;
     dk1[3*1+1] = -a1*(cp*R1 - sp*dR1[1]) * iR1*iR1 / r;
     dk1[3*1+2] = z * iR1*iR1*dR1[1];
     dk1[3*2+0] = -(cp*a1-r)*iR1*iR1*dR1[2];
@@ -472,7 +473,7 @@ void metric_der_shift(double X[3], double db[12])
     dk2[3*0+0] = (-R2 - (cp*a2-r)*dR2[0]) * iR2*iR2;
     dk2[3*0+1] = sp*a2 * (iR2*iR2*dR2[0]/r + iR2/(r*r));
     dk2[3*0+2] = z * iR2*iR2*dR2[0];
-    dk2[3*1+0] = (-sp*R2 - (cp*a2-r)*dR2[1]) * iR2*iR2;
+    dk2[3*1+0] = (-sp*a2*R2 - (cp*a2-r)*dR2[1]) * iR2*iR2;
     dk2[3*1+1] = -a2*(cp*R2 - sp*dR2[1]) * iR2*iR2 / r;
     dk2[3*1+2] = z * iR2*iR2*dR2[1];
     dk2[3*2+0] = -(cp*a2-r)*iR2*iR2*dR2[2];
