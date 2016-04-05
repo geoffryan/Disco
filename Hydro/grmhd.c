@@ -6,7 +6,7 @@
 #define DEBUG 1
 #define DEBUG2 0
 #define DEBUG3 0
-#define DEBUG_RMAX 1.5
+#define DEBUG_RMAX 4.0
 #define DEBUG_ZMAX 3.5
 #define ND 3
 
@@ -805,7 +805,7 @@ void cons2prim_solve_adiabatic_noble2d(double *cons, double *prim, double *x)
 
     //Initial guess: previous v2, eta
     double u2 = 0.0;
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     for(i=0; i<3; i++)
         for(j=0; j<3; j++)
             u2 += igam[3*i+j]*l[i]*l[j];
@@ -1037,7 +1037,7 @@ void cons2prim_solve_adiabatic_geoff2d(double *cons, double *prim, double *x)
 
     //Initial guess: previous u2, eta
     double u20 = 0.0;
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     for(i=0; i<3; i++)
         for(j=0; j<3; j++)
             u20 += igam[3*i+j]*l[i]*l[j];
@@ -1306,7 +1306,7 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
 
     //Initial guess: previous u2, eta
     double u20 = 0.0;
-    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    double l[3] = {prim[URR], r*r*prim[UPP], prim[UZZ]};
     for(i=0; i<3; i++)
         for(j=0; j<3; j++)
             u20 += igam[3*i+j]*l[i]*l[j];
@@ -1319,6 +1319,7 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
     
     i = 0;
     int clean = -1;
+
     
     if(DEBUG2)
     {
@@ -1327,24 +1328,37 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
         printf("0: (%.16lg, %.16lg)\n", u21, eta1);
     }
 
+    double u2_last = u20;
+    double eta_last = eta0;
+    double norm = 1.0e100; //HUGE VAL
+
+    double w20 = 1.0+u20;
+    double w0 = sqrt(w20);
+    double h0 = 1+eta0;
+
+    double BB0 = u20/(1+w0) + eta0*(1.0/gamma_law + u20)/w0;
+    double CC0 = 1.0 + t + n*eta0/w0 + 0.5*(Q+psi/(h0*h0))/w20;
+    //double fa = AA*AA*u2/w2 - (2*h*w+Q)*psi/(h*h*w2) - s2;
+    double fb0 = BB0 + 0.5*(1+2*u20)/w20*Q - 0.5*psi/(h0*h0*w20) - t;
+    double fc0 = CC0*CC0*u20/w20 - (2*h0*w0+Q)*psi/(h0*h0*w20) - s2;
+
     while(1)
     {
+        u2_last = u2;
+        eta_last = eta;
+
         u2 = u21;
         eta = eta1;
+
         
         double w2 = 1.0 + u2;
         double w = sqrt(w2);
         double h = 1.0 + eta;
 
-        //double AA = h*w + Q;
         double BB = u2/(1+w) + eta*(1.0/gamma_law + u2)/w;
         double CC = 1.0 + t + n*eta/w + 0.5*(Q+psi/(h*h))/w2;
-        //double fa = AA*AA*u2/w2 - (2*h*w+Q)*psi/(h*h*w2) - s2;
         double fb = BB + 0.5*(1+2*u2)/w2*Q - 0.5*psi/(h*h*w2) - t;
         double fc = CC*CC*u2/w2 - (2*h*w+Q)*psi/(h*h*w2) - s2;
-        //double dfadu2 = AA*h*u2/(w*w2) + AA*AA/(w2*w2)
-        //                    + (h*w+Q)/(h*h*w2*w2)*psi;
-        //double dfadet = 2*AA*u2/w + 2*(h*w+Q)*psi/(w2*h*h*h);
         double dfbdu2 = (1+w+0.5*u2)/(w*(1+w)*(1+w))
                         + eta*(1+0.5/gamma_law+0.5*u2)/(w*w2)
                         + 0.5*(Q+psi/(h*h))/(w2*w2);
@@ -1353,52 +1367,64 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
                             *u2/w2 + CC*CC/(w2*w2) + (h*w+Q)/(h*h*w2*w2)*psi;
         double dfcdet = 2*CC*(n/w - psi/(h*h*h*w2))*u2/w2
                             + 2*(h*w+Q)*psi/(w2*h*h*h);
-
-
         double detj = dfcdu2*dfbdet - dfbdu2*dfcdet;
 
+        double du2  = -( dfbdet*fc - dfcdet*fb)/detj;
+        double deta = -(-dfbdu2*fc + dfcdu2*fb)/detj;
 
-        u21  = u2  - ( dfbdet*fc - dfcdet*fb)/detj;
-        eta1 = eta - (-dfbdu2*fc + dfcdu2*fb)/detj;
+        u21  = u2  + 0.5*du2;
+        eta1 = eta + 0.5*deta;
+        
+        norm = 0.5*(fb*fb+fc*fc);
+/*
+        double h1 = 1+eta1;
+        double w21 = u21+1;
+        double w1 = sqrt(w21);
+        double BB1 = u21/(1+w1) + eta1*(1.0/gamma_law + u21)/w1;
+        double CC1 = 1.0 + t + n*eta1/w1 + 0.5*(Q+psi/(h1*h1))/w21;
+        double fb1 = BB1 + 0.5*(1+2*u21)/w21*Q - 0.5*psi/(h1*h1*w21) - t;
+        double fc1 = CC*CC*u21/w21 - (2*h1*w1+Q)*psi/(h1*h1*w21) - s2;
+        double norm1 = 0.5*(fb1*fb1+fc1*fc1);
+        double lambda = 1.0;
+
+        double dg = (fb*dfbdu2+fc*dfcdu2)*du2 + (fb*dfbdet+fc*dfcdet)*deta;
+
+        while(norm1 > norm && lambda > 0.1 && dg < 0)
+        {
+            lambda = -0.5*dg/(norm1-norm-dg);
+
+            u21 = u2 + lambda*du2;
+            eta1 = eta + lambda*deta;
+        
+            w1 = sqrt(w21);
+            BB1 = u21/(1+w1) + eta1*(1.0/gamma_law + u21)/w1;
+            CC1 = 1.0 + t + n*eta1/w1 + 0.5*(Q+psi/(h1*h1))/w21;
+            fb1 = BB1 + 0.5*(1+2*u21)/w21*Q - 0.5*psi/(h1*h1*w21) - t;
+            fc1 = CC*CC*u21/w21 - (2*h1*w1+Q)*psi/(h1*h1*w21) - s2;
+            norm1 = 0.5*(fb1*fb1+fc1*fc1);
+        }
+
+        norm = norm1;
+
+        */
+
 
         i++;
 
+        if(u21 == u2_last && eta1 == eta_last && u21 != u2 && eta1 != eta)
+        {
+            u21 = 0.5*(u21 + u2);
+            eta1 = 0.5*(eta1 + eta);
+            if(DEBUG2)
+                printf("2-cycle (%.12lg %.12lg %.12lg) u2=%.12lg eta=%.12lg\n",
+                        x[0], x[1], x[2], u21, eta1);
+        }
+
         
         if(u21 < -1.0)
-        {
-            /*
-            double x = (0.5*u2 - u2) / (u21 - u2);
             u21 = 0.5*u2;
-            eta1 = (1-x)*eta + x*eta1;
-            */
-            /*
-            u21 = u2 - 0.5*(fa/dfadu2 + fb/dfbdu2);
-            eta1 = eta - 0.5*(fa/dfadet + fb/dfbdet);
-            */
-
-            //printf("weirdy\n");
-            u21 = 0.5*u2;
-            //u21 = ((2*h*w+Q)*psi + s2*h*h*(1.0+u2)) / (AA*AA);
-            //eta = (psi + h*h*(1+u2)*(t-0.5*Q) - h*h*u2*Q - h*h*w*w/(1+w)*u2)
-            //         / (h*h*w*(1.0/gamma_law + u2));
-        }
         if(eta1 < -1.0)
-        {
-            /*
-            double x = (0.5*eta - eta) / (eta1 - eta);
-            u21 = (1-x)*u2 + x*u21;
             eta1 = 0.5*eta;
-            */
-            /*
-            u21 = u2 - 0.5*(fa/dfadu2 + fb/dfbdu2);
-            eta1 = eta - 0.5*(fa/dfadet + fb/dfbdet);
-            */
-            //printf("weirdy\n");
-            eta1 = 0.5*eta;
-            //u21 = ((2*h*w+Q)*psi + s2*h*h*(1.0+u2)) / (AA*AA);
-            //eta = (psi + h*h*(1+u2)*(t-0.5*Q) - h*h*u2*Q - h*h*w*w/(1+w)*u2)
-            //         / (h*h*w*(1.0/gamma_law + u2));
-        }
         
 
         double err = (eta1-eta)/eta;
@@ -1409,8 +1435,8 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
         {
             printf("%d: (%.16lg, %.16lg) (%.16lg, %.16lg) %.16lg\n", 
                     i, u21, eta1, fc, fb, err);
-            printf("    %.16lg %.16lg %.16lg %.16lg\n", dfcdu2, dfcdet, 
-                        dfbdu2, dfbdet);
+            printf("    (%.16lg) %.16lg %.16lg %.16lg %.16lg\n", norm, 
+                        dfcdu2, dfcdet, dfbdu2, dfbdet);
         }
 
         if(fabs(err) < prec && clean < 0)

@@ -4,7 +4,7 @@
 #include "frame.h"
 
 #define DEBUG 0
-#define ND 2
+#define ND 3
 
 //Global Functions
 double get_cs2( double );
@@ -337,6 +337,10 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
 
 void visc_flux(double *prim, double *gprim, double *flux, double *x, 
                 double *n){}
+
+void flux_to_E(double *Flux, double *Ustr, double *x, double *E1_riemann, 
+                double *B1_riemann, double *E2_riemann, double *B2_riemann, 
+                int dim){}
 
 void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss, 
             double *n, double *x, double *Bpack)

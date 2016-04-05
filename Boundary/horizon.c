@@ -90,7 +90,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
                double rm = r_jph[j-1];
                double rc = fabs(rp) < fabs(rm) ? rp : rm;
 
-               if((rc*rc+zc*zc > cut && Nz>1) || rc > cut)
+               if((rc*rc+zc*zc > cut*cut && Nz>1) || rc > cut)
                    break;
 
                int jk = j+Nr*k;
