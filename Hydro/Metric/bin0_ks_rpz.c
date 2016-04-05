@@ -19,7 +19,7 @@
 
 static double M = 1.0; 
 static double q = 1.0;
-static double a = 1.0e1;
+static double a = 10.0;
 static double M1;
 static double M2;
 static double a1;
@@ -306,12 +306,12 @@ void metric_der_g(double X[3], int i, double dg[16])
     double be2p = -2*H2*k2p/(r*r*(1+2*H2));
     double be2z = -2*H2*k2z/(1+2*H2);
 
-    double dbe1r = be1r*(dH1/H1 + dk1r/k1r - 2*dH1/(1+2*H1));
-    double dbe1p = be1p*(dH1/H1 + dk1p/k1p - 2*dH1/(1+2*H1) - dr2/(r*r));
-    double dbe1z = be1z*(dH1/H1 + dk1z/k1z - 2*dH1/(1+2*H1));
-    double dbe2r = be2r*(dH2/H2 + dk2r/k2r - 2*dH2/(1+2*H2));
-    double dbe2p = be2p*(dH2/H2 + dk2p/k2p - 2*dH2/(1+2*H2) - dr2/(r*r));
-    double dbe2z = be2z*(dH2/H2 + dk2z/k2z - 2*dH2/(1+2*H2));
+    double dbe1r = -2*(dH1*k1r + H1*dk1r*(1+2*H1)) / ((1+2*H1)*(1+2*H1));
+    double dbe1p = -2*(dH1*k1p + H1*dk1p*(1+2*H1)) / (r*r*(1+2*H1)*(1+2*H1)) - be1p*dr2/(r*r);
+    double dbe1z = -2*(dH1*k1z + H1*dk1z*(1+2*H1)) / ((1+2*H1)*(1+2*H1));
+    double dbe2r = -2*(dH2*k2r + H2*dk2r*(1+2*H2)) / ((1+2*H2)*(1+2*H2));
+    double dbe2p = -2*(dH2*k2p + H2*dk2p*(1+2*H2)) / (r*r*(1+2*H2)*(1+2*H2)) - be2p*dr2/(r*r);
+    double dbe2z = -2*(dH2*k2z + H2*dk2z*(1+2*H2)) / ((1+2*H2)*(1+2*H2));
 
     double ber = be1r+be2r;
     double bep = be1p+be2p+om;

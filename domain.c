@@ -15,6 +15,7 @@ void setPlanetParams( struct domain * );
 void setHlldParams( struct domain * );
 void setDiskParams( struct domain * );
 void setOmegaParams( struct domain * );
+void setMetricParams( struct domain * );
 
 int get_num_rzFaces( int , int , int );
 
@@ -88,6 +89,7 @@ void setupDomain( struct domain * theDomain ){
    setHlldParams( theDomain );
    setDiskParams( theDomain );
    setOmegaParams( theDomain );
+   setMetricParams( theDomain );
 
 }
 
@@ -143,6 +145,7 @@ void setupCells( struct domain * theDomain ){
             }
             prim2cons( c->prim , c->cons , x , dV );
             cons2prim( c->cons , c->prim , x , dV );
+            c->real = 1;
          }    
       }    
    }

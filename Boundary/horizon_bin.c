@@ -21,7 +21,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
    int * dim_size = theDomain->dim_size;
 
    double M = 1.0; //TODO: get from parfile
-   double a = 10.0; //TODO: get from parfile
+   double a = 1.0e1; //TODO: get from parfile
    double q = 1.0; //TODO: get from parfile
 
    double M1 = M / (1+q);
@@ -77,8 +77,8 @@ void boundary_trans( struct domain * theDomain , int dim ){
    //Horizon jazz
    double rh1 = 2*M1;
    double rh2 = 2*M2;
-   double cut1 = 0.9*rh1;
-   double cut2 = 0.9*rh2;
+   double cut1 = 0.8*rh1;
+   double cut2 = 0.8*rh2;
 
    //Check if the cut-out region 1 is even on this process.
    if(r_jph[-1] < a1+cut1 && r_jph[Nr-1] > a1-cut1 
@@ -101,7 +101,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
                double rc = fabs(rp-a1) < fabs(rm-a1) ? rp : rm;
 
                if(((rc-a1)*(rc-a1)+zc*zc > cut1*cut1 && Nz>1) || fabs(rc-a1) > cut1)
-                   break;
+                   continue;
 
                int jk = j+Nr*k;
                for(i=0; i<Np[jk]; i++)
@@ -111,7 +111,11 @@ void boundary_trans( struct domain * theDomain , int dim ){
                   
                   double xc = rc*cos(phi);
                   double yc = rc*sin(phi);
-                  double d2 = (xc-a1)*(xc-a1) + yc*yc + zc*zc;
+                  double d2;
+                  if(Nz > 1)
+                    d2 = (xc-a1)*(xc-a1) + yc*yc + zc*zc;
+                  else
+                    d2 = (xc-a1)*(xc-a1) + yc*yc;
 
                   if(d2 < cut1*cut1)
                   {
@@ -143,8 +147,8 @@ void boundary_trans( struct domain * theDomain , int dim ){
                double rm = r_jph[j-1];
                double rc = fabs(rp+a2) < fabs(rm+a2) ? rp : rm;
 
-               if(((rc+a1)*(rc+a1)+zc*zc > cut2*cut2 && Nz>1) || fabs(rc+a2) > cut2)
-                   break;
+               if(((rc+a2)*(rc+a2)+zc*zc > cut2*cut2 && Nz>1) || fabs(rc+a2) > cut2)
+                   continue;
 
                int jk = j+Nr*k;
                for(i=0; i<Np[jk]; i++)
@@ -154,7 +158,11 @@ void boundary_trans( struct domain * theDomain , int dim ){
                   
                   double xc = rc*cos(phi);
                   double yc = rc*sin(phi);
-                  double d2 = (xc-a2)*(xc-a2) + yc*yc + zc*zc;
+                  double d2;
+                  if(Nz > 1)
+                    d2 = (xc-a2)*(xc-a2) + yc*yc + zc*zc;
+                  else
+                    d2 = (xc-a2)*(xc-a2) + yc*yc;
 
                   if(d2 < cut2*cut2)
                   {

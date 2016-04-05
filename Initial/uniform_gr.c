@@ -16,7 +16,10 @@ void initial( double * prim , double * x ){
    prim[UZZ] = 0.0;
    if( NUM_N>0 ) prim[NUM_C] = 0.0;
 
-   prim[BRR] =  cos(x[1]) * fac * bfac;
-   prim[BPP] = -sin(x[1]) * fac * bfac;
-   prim[BZZ] = 0.0;
+   if(NUM_C > 5)
+   {
+       prim[BRR] =  cos(x[1]) * fac * bfac;
+       prim[BPP] = -sin(x[1]) * fac * bfac;
+       prim[BZZ] = 0.0;
+   }
 }
