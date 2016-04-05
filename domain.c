@@ -38,7 +38,7 @@ void setupDomain( struct domain * theDomain ){
    theDomain->thePlanets = (struct planet *) malloc( Npl*sizeof(struct planet) );
    initializePlanets( theDomain->thePlanets );
 
-   double num_tools = num_diagnostics();
+   int num_tools = num_diagnostics();
    theDomain->num_tools = num_tools;
    theDomain->theTools.t_avg = 0.0;
    theDomain->theTools.Qr = (double *) malloc( Nr*num_tools*sizeof(double) );
@@ -145,7 +145,6 @@ void setupCells( struct domain * theDomain ){
             }
             prim2cons( c->prim , c->cons , x , dV );
             cons2prim( c->cons , c->prim , x , dV );
-            c->real = 1;
          }    
       }    
    }
