@@ -124,6 +124,7 @@ struct cell{
    double RK_Phi[NUM_FACES];
    double tempDoub;
 
+   int real;
 };
 
 struct edge{

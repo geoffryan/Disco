@@ -53,6 +53,8 @@ double getmindt( struct domain * theDomain ){
          int jk = j+Nr*k;
          for( i=0 ; i<Np[jk] ; ++i ){
             struct cell * c = &(theCells[jk][i]);
+            if(!(c->real))
+                continue;
             double phip = c->piph;
             double phim = phip - c->dphi;
             double xp[3] = {r_jph[j  ] , phip , z_kph[k  ]};

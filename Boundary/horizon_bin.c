@@ -121,6 +121,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
                   {
                       double X[3] = {0.5*(rm+rp), phi, 0.5*(zm+zp)};
                       initial(c->prim, X);
+                      c->real = 0;
                   }
                }
            }
@@ -168,6 +169,7 @@ void boundary_trans( struct domain * theDomain , int dim ){
                   {
                       double X[3] = {0.5*(rm+rp), phi, 0.5*(zm+zp)};
                       initial(c->prim, X);
+                      c->real = 0;
                   }
                }
            }
