@@ -6,7 +6,7 @@
 #define DEBUG 1
 #define DEBUG2 0
 #define DEBUG3 0
-#define DEBUG_RMAX 4.0
+#define DEBUG_RMAX 0.4
 #define DEBUG_ZMAX 3.5
 #define ND 3
 
@@ -238,9 +238,9 @@ void cons2prim(double *cons, double *prim, double *x, double dV)
         cons2prim_solve_isothermal(cons1, prim, x);
     else
     {
-        //cons2prim_solve_adiabatic_noble2d(cons1, prim, x);
+        cons2prim_solve_adiabatic_noble2d(cons1, prim, x);
         //cons2prim_solve_adiabatic_geoff2d(cons1, prim, x);
-        cons2prim_solve_adiabatic_geoff2dv2(cons1, prim, x);
+        //cons2prim_solve_adiabatic_geoff2dv2(cons1, prim, x);
     }
     cons2prim_finalize(prim, x);
 }
@@ -423,7 +423,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
         metric_der_g(x, i+1, dg);
         for(mu=0; mu<4; mu++)
             for(nu=0; nu<4; nu++)
-                Sk[i] += (rhoh*u[mu]*u[nu]*rcorr*pcorr + ig[4*mu+nu]*Pt - b[mu]*b[nu]*pcorr)
+                Sk[i] += (rhoh*u[mu]*u[nu]*rcorr*pcorr + ig[4*mu+nu]*Pt - b[mu]*b[nu])
                             * dg[4*mu+nu];
         Sk[i] *= 0.5;
     }
@@ -546,7 +546,7 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
     b21 = (B21 + uB1*uB1) / (w1*w1);
     b22 = (B22 + uB2*uB2) / (w2*w2);
 
-    double va21 = b21 / (rho1 + gamma_law/(gamma_law-1.0)*P1 + b22);
+    double va21 = b21 / (rho1 + gamma_law/(gamma_law-1.0)*P1 + b21);
     double va22 = b22 / (rho2 + gamma_law/(gamma_law-1.0)*P2 + b22);
 
     double cf21 = cs21 + va21 - cs21*va21;
@@ -580,6 +580,10 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
 
     *Sr = sr1 > sr2 ? sr1 : sr2;
     *Sl = sl1 < sl2 ? sl1 : sl2;
+
+    //Lax-Friedrichs
+    //*Sr = 1.0;
+    //*Sl = -1.0;
 
     //double maxv = fabs(*Sr) > fabs(*Sl) ? fabs(*Sr) : fabs(*Sl);
     //*Sr = maxv;

@@ -25,7 +25,7 @@
 #define VAL_FLOOR -3 //-2 //0.4    //0.95//0 //-8e-3//-3e-2 //(-HUGE_VAL)  //.96
 #define VAL_CEIL  -1 //2 //0.7 //4.5e-3 //1.05//5.25e-21 //5.25e-9 //8e-3//3e-2 //5.24e-5 //(HUGE_VAL)  //1.04
 #define FIXMAXMIN 1
-#define COLORMAX 6
+#define COLORMAX 7
 #define CAM_BACKUP  1.5
 
 static int WindowWidth  = 600;
@@ -34,7 +34,7 @@ static int WindowHeight = 600;
 int CommandMode;
 int FullScreenMode=0;
 
-int dim3d = 1;
+int dim3d = 0;
 int t_off = 0;
 int p_off = 0;
 int cmap = 4;
@@ -48,8 +48,8 @@ int draw_scale = 0;
 int reflect  = 0;
 int valq=-1;
 int draw_border = 0;
-int logscale = 1;
-int floors=1;
+int logscale = 0;
+int floors=0;
 int help_screen=0;
 int print_vals=0;
 int fix_zero=0;
