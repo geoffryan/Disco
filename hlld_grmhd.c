@@ -11,6 +11,44 @@ enum{DD,EN,MX,MY,MZ,BX,BY,BZ};
 
 static double GAMMA_LAW = 0.0;
 
+//Global Functions
+void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U, 
+                    double *x, double *n);
+
+//Local Functions
+void solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FR,
+                    double *UR, double *FR, double w, double *U, double *F);
+void calc_va(double p, double s, double Bx, double *R, double *va, 
+                double *dva);
+void calc_Ba(double s, double Bx, double *R, double *va, double *Ba, 
+                double *dva, double *dBa);
+void calc_entha(double p, double s, double *R, double *va, double *enth,
+                    double *dva, double *denth);
+void calc_Ka(double p, double s, double Bx, double enth, double *R, double *K,
+                double denth, double *dKa, int LR);
+void calc_Bc(double Bx, double sL, double sR, double *BaL, double *BaR, 
+                double *vaL, double *vaR, double saL, double saR, double *Bc,
+                double *dBaL, double *dBaR, double *dvaL, double *dvaR,
+                double dsaL, double dsaR, double *dBc);
+void cont_func(double Bx, double *BaL, double *BaR,
+                double *vaL, double *vaR, double *KaL, double *KaR,
+                double enthL, double enthR, double *f,
+                double *dBaL, double *dBaR, double *dvaL, double *dvaR,
+                double *dKaL, double *dKaR, double denthL, double denthR,
+                double *df);
+void calc_vc(double Bx, double *Ka, double *Bc, double enth, double *vc,
+                int LR);
+int calc_Ps(double *RL, double *RR, double Bx, double sL, double sR, 
+                double *Ps);
+void calc_state(double p, double *RL, double *RR, double Bx, double sL, 
+                    double sR, double *vaL, double *vaR, double *BaL, 
+                    double *BaR, double *enthL, double *enthR, double *KaL,
+                    double *KaR, double *Bc, double *vcL, double *vcR);
+void calc_Ua(double p, double s, double Bx, double *R, double *va, double *Ba,
+                double *Ua);
+void calc_Uc(double p, double sa, double Bx, double *va, double *vc, 
+                double *Bc, double *Ua, double *Uc);
+
 void setHlldParams( struct domain * theDomain )
 {
    GAMMA_LAW = theDomain->theParList.Adiabatic_Index;
