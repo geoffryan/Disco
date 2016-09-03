@@ -14,7 +14,7 @@
 #define LAXF 0
 #define LAXF_V 1.0
 
-#define MINDT_C 1
+#define MINDT_C 0
 
 //Global Functions
 double get_cs2( double );
@@ -449,8 +449,8 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     double rm = xm[0];
     double r2_3 = (rp*rp + rp*rm + rm*rm)/3.0;
     double dphi = get_dp(xp[1],xm[1]);
-    double rcorr = r2_3/(r*r);
-    double pcorr = sin(0.5*dphi)/(0.5*dphi);
+    double rcorr = 1.0; //r2_3/(r*r);
+    double pcorr = 1.0; //sin(0.5*dphi)/(0.5*dphi);
 
     for(i=0; i<3; i++)
     {
