@@ -352,12 +352,6 @@ void calc_tetrads(double al, double *be, double *gam, double *igam,
     int yy = (xx+1)%3;
     int zz = (xx+2)%3;
 
-    /*if(xx == 1)
-    {
-        yy = 0;
-        zz = 2;
-    }*/
-
     double ial = 1.0/al;
     double xfac = 1.0/sqrt(igam[3*xx+xx]); // 1.0 / sqrt(gam^{11})
 
@@ -483,9 +477,10 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
     if(DEBUG2 || DEBUG4)
         printf("    Ps0 = %.12lg\n", Ps); 
 
-    int err;
+    int err, mag;
+    mag = Bx*Bx > 1.0e-16 * Ps ? 1 : 0;
     //TODO: THIS IS SUCH A HACK. calc_Ps should be able to handle B=0.
-    if(Bx != 0.0)
+    if(mag)
         err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
     if(DEBUG2 || DEBUG4)
         printf("    Ps = %.12lg\n", Ps); 
@@ -538,7 +533,7 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
             F[q] = FL[q] + sL*(U[q]-UL[q]);
         zone = 1;
     }
-    else if(w < sc)
+    else if(w < sc && mag)
     {
         if(DEBUG3 || DEBUG4)
             printf("    State cL!! (w=%.8lg)\n", w);
@@ -549,7 +544,7 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
             F[q] = FL[q] + sL*(UaL[q]-UL[q]) + saL*(U[q]-UaL[q]);
         zone = 2;
     }
-    else if(w < saR)
+    else if(w < saR && mag)
     {
         if(DEBUG3 || DEBUG4)
             printf("    State cR!! (w=%.8lg)\n", w);
@@ -608,8 +603,8 @@ void calc_va(double p, double s, double Bx, double *R, double *va, double *dva)
     if(dva != NULL)
     {
         double dA = 1.0-s*s;
-        double dQ = -1.0;
-        double diX = iX*iX*s*(A+G);
+        double dQ = -dA;
+        double diX = -iX*iX*(s*Bx*Bx*dA - s*(A+G) - dA*(s*p+R[EN]));
         dva[0] = diX*(Bx * (A*Bx+s*C) - (A+G) * (p+R[MX]))
                     + iX*(Bx*Bx*dA - dA*(p+R[MX]) - (A+G));
         dva[1] = diX * (Q*R[MY] + R[BY] * (C+Bx*(s*R[MX]-R[EN])))

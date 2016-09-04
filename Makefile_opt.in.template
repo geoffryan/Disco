@@ -9,6 +9,7 @@ BOUNDARY = polar
 OUTPUT   = h5out
 RESTART  = h5in
 PLANETS  = none
+HLLD     = hlld
 METRIC   = flat_rpz
 FRAME    = normal
 
