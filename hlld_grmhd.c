@@ -35,6 +35,10 @@ void calc_UF(double rho, double P, double *u, double *B, double *U, double *F);
 int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
                     double *UR, double *FR, double w, double *pL, double *pR,
                     double *U, double *F);
+int checkSolution(double Ps, double sL, double sR, double *vaL, double *vaR, 
+                    double *BaL, double *BaR, double enthL, double enthR, 
+                    double *KaL, double *KaR, double *Bc, double *vcL, 
+                    double *vcR);
 void calc_va(double p, double s, double Bx, double *R, double *va, 
                 double *dva);
 void calc_Ba(double s, double Bx, double *R, double *va, double *Ba, 
@@ -215,6 +219,12 @@ void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U,
     primRo[UZZ] = uRo[3];
     int zone = solve_HLLD_SR(sLo, sRo, Bx, ULo, FLo, URo, FRo, wo, 
                                 primLo, primRo, Uo, Fo);
+
+    if(zone < 0)
+    {
+        printf("HLLD Failure. Using HLL.  x=(%.6lg %.6lg %.6lg) n=(%.0lf %.0lf %.0lf)\n", 
+                x[0], x[1], x[2], n[0], n[1], n[2]);
+    }
 
     //Convert momenta and energy to coordinate frame
     //TODO: Check accuracy
@@ -466,33 +476,74 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
     double prim[5];
     for(q=0; q<5; q++)
         prim[q] = 0.5*(pL[q]+pR[q]);
-    Ps =  cons2prim_hlld(Uhll, prim);
-    if(Bx*Bx < 0.1*Ps)
-    {
-        //Eq. (55) of MUB
-        double b = Uhll[EN]-Fhll[MX];
-        double c = Uhll[MX]*Fhll[EN] - Fhll[MX]*Uhll[EN];
-        Ps = 0.5*(-b + sqrt(b*b-4*c));
-    }
+    double Pshll = cons2prim_hlld(Uhll, prim);
+    
+    //Eq. (55) of MUB
+    double b = Uhll[EN]-Fhll[MX];
+    double c = Uhll[MX]*Fhll[EN] - Fhll[MX]*Uhll[EN];
+    double Ps0 = 0.5*(-b + sqrt(b*b-4*c));
+    if(Bx*Bx < 0.1*Pshll)
+        Ps = Ps0;
+    else
+        Ps = Pshll;
     if(DEBUG2 || DEBUG4)
-        printf("    Ps0 = %.12lg\n", Ps); 
+        printf("    Ps0 = %.12lg (PsHLL=%.16lg PsB0=%.16lg)\n", Ps,Pshll,Ps0); 
 
     int err, mag;
     mag = Bx*Bx > 1.0e-16 * Ps ? 1 : 0;
-    //TODO: THIS IS SUCH A HACK. calc_Ps should be able to handle B=0.
-    if(mag)
-        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
-    if(DEBUG2 || DEBUG4)
-        printf("    Ps = %.12lg\n", Ps); 
-
+    
     double BaL[3], Bc[3], BaR[3];
     double vaL[3], vcL[3], vcR[3], vaR[3];
     double KL[3], KR[3];
     double enthL, enthR;
     double saL, sc, saR;
 
-    calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, &enthL, &enthR, 
+    //TODO: THIS IS SUCH A HACK. calc_Ps should be able to handle B=0.
+    int success;
+    if(mag)
+    {
+        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, &enthL, &enthR, 
                 KL, KR, Bc, vcL, vcR);
+        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, enthL, enthR, 
+                                KL, KR, Bc, vcL, vcR);
+        if(!success)
+        {
+            if(DEBUG4)
+                printf("Second Attempt.\n");
+            if(Bx*Bx < 0.1*Pshll)
+                Ps = Pshll;
+            else
+                Ps = Ps0;
+            err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+            calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                        &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+            success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, enthL, 
+                                    enthR, KL, KR, Bc, vcL, vcR);
+        }
+        if(!success)
+        {
+            if(DEBUG4)
+                printf("Third Attempt.\n");
+            Ps = 0.7*Pshll;
+            err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+            calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                        &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+            success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, enthL, 
+                                    enthR, KL, KR, Bc, vcL, vcR);
+        }
+    }
+    else
+    {
+        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                    &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, enthL, 
+                                enthR, KL, KR, Bc, vcL, vcR);
+    }
+    if(DEBUG2 || DEBUG4)
+        printf("    Ps = %.12lg\n", Ps); 
+
+
 
     saL = KL[0];
     saR = KR[0];
@@ -500,10 +551,29 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
 
     if(DEBUG4)
     {
+        printf("UL: %.16lg %.16lg %.16lg %.16lg\n", 
+                UL[0], UL[1], UL[2], UL[3]);
+        printf("    %.16lg %.16lg %.16lg %.16lg\n", 
+                UL[4], UL[5], UL[6], UL[7]);
+        printf("UR: %.16lg %.16lg %.16lg %.16lg\n", 
+                UR[0], UR[1], UR[2], UR[3]);
+        printf("    %.16lg %.16lg %.16lg %.16lg\n", 
+                UR[4], UR[5], UR[6], UR[7]);
+        printf("FL: %.16lg %.16lg %.16lg %.16lg\n", 
+                FL[0], FL[1], FL[2], FL[3]);
+        printf("    %.16lg %.16lg %.16lg %.16lg\n", 
+                FL[4], FL[5], FL[6], FL[7]);
+        printf("FR: %.16lg %.16lg %.16lg %.16lg\n", 
+                FR[0], FR[1], FR[2], FR[3]);
+        printf("    %.16lg %.16lg %.16lg %.16lg\n", 
+                FR[4], FR[5], FR[6], FR[7]);
+        printf("Bx = %.16lg, sL = %.16lg, sR = %.16lg\n", Bx, sL, sR);
+        printf("enth: %.12lg %.12lg\n", enthL, enthR);
+
     printf("B: (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg)\n",
             BaL[0], BaL[1], BaL[2], Bc[0], Bc[1], Bc[2], 
             BaR[0], BaR[1], BaR[2]);
-    printf("K: (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg)\n",
+    printf("K: (%.12lg %.6lg %.6lg) (%.12lg %.6lg %.6lg)\n",
             KL[0], KL[1], KL[2], KR[0], KR[1], KR[2]);
     printf("va: (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg)\n",
             vaL[0], vaL[1], vaL[2], vaR[0], vaR[1], vaR[2]);
@@ -513,68 +583,108 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
 
     int zone = -1;
 
-    if(w < sL)
+    if(success)
     {
-        if(DEBUG3 || DEBUG4)
-            printf("    State  L!! (w=%.8lg)\n", w);
-        for(q=0; q<NUM_C; q++)
+        if(w < sL)
         {
-            U[q] = UL[q];
-            F[q] = FL[q];
+            if(DEBUG3 || DEBUG4)
+                printf("    State  L!! (w=%.8lg)\n", w);
+            for(q=0; q<NUM_C; q++)
+            {
+                U[q] = UL[q];
+                F[q] = FL[q];
+            }
+            zone = 0;
         }
-        zone = 0;
-    }
-    else if (w < saL)
-    {
-        if(DEBUG3 || DEBUG4)
-            printf("    State aL!! (w=%.8lg)\n", w);
-        calc_Ua(Ps, sL, Bx, RL, vaL, BaL, U);
-        for(q=0; q<NUM_C; q++)
-            F[q] = FL[q] + sL*(U[q]-UL[q]);
-        zone = 1;
-    }
-    else if(w < sc && mag)
-    {
-        if(DEBUG3 || DEBUG4)
-            printf("    State cL!! (w=%.8lg)\n", w);
-        double UaL[NUM_C];
-        calc_Ua(Ps, sL, Bx, RL, vaL, BaL, UaL);
-        calc_Uc(Ps, saL, Bx, vaL, vcL, Bc, UaL, U);
-        for(q=0; q<NUM_C; q++)
-            F[q] = FL[q] + sL*(UaL[q]-UL[q]) + saL*(U[q]-UaL[q]);
-        zone = 2;
-    }
-    else if(w < saR && mag)
-    {
-        if(DEBUG3 || DEBUG4)
-            printf("    State cR!! (w=%.8lg)\n", w);
-        double UaR[NUM_C];
-        calc_Ua(Ps, sR, Bx, RR, vaR, BaR, UaR);
-        calc_Uc(Ps, saR, Bx, vaR, vcR, Bc, UaR, U);
-        for(q=0; q<NUM_C; q++)
-            F[q] = FR[q] + sR*(UaR[q]-UR[q]) + saR*(U[q]-UaR[q]);
-        zone = 3;
-    }
-    else if(w < sR)
-    {
-        if(DEBUG3 || DEBUG4)
-            printf("    State aR!! (w=%.8lg)\n", w);
-        calc_Ua(Ps, sR, Bx, RR, vaR, BaR, U);
-        for(q=0; q<NUM_C; q++)
-            F[q] = FR[q] + sR*(U[q]-UR[q]);
-        zone = 4;
+        else if (w < saL)
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State aL!! (w=%.8lg)\n", w);
+            calc_Ua(Ps, sL, Bx, RL, vaL, BaL, U);
+            for(q=0; q<NUM_C; q++)
+                F[q] = FL[q] + sL*(U[q]-UL[q]);
+            zone = 1;
+        }
+        else if(w < sc && mag)
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State cL!! (w=%.8lg)\n", w);
+            double UaL[NUM_C];
+            calc_Ua(Ps, sL, Bx, RL, vaL, BaL, UaL);
+            calc_Uc(Ps, saL, Bx, vaL, vcL, Bc, UaL, U);
+            for(q=0; q<NUM_C; q++)
+                F[q] = FL[q] + sL*(UaL[q]-UL[q]) + saL*(U[q]-UaL[q]);
+            zone = 2;
+        }
+        else if(w < saR && mag)
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State cR!! (w=%.8lg)\n", w);
+            double UaR[NUM_C];
+            calc_Ua(Ps, sR, Bx, RR, vaR, BaR, UaR);
+            calc_Uc(Ps, saR, Bx, vaR, vcR, Bc, UaR, U);
+            for(q=0; q<NUM_C; q++)
+                F[q] = FR[q] + sR*(UaR[q]-UR[q]) + saR*(U[q]-UaR[q]);
+            zone = 3;
+        }
+        else if(w < sR)
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State aR!! (w=%.8lg)\n", w);
+            calc_Ua(Ps, sR, Bx, RR, vaR, BaR, U);
+            for(q=0; q<NUM_C; q++)
+                F[q] = FR[q] + sR*(U[q]-UR[q]);
+            zone = 4;
+        }
+        else
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State  R!! (w=%.8lg)\n", w);
+            for(q=0; q<NUM_C; q++)
+            {
+                U[q] = UR[q];
+                F[q] = FR[q];
+            }
+            zone = 5;
+        }
     }
     else
     {
-        if(DEBUG3 || DEBUG4)
-            printf("    State  R!! (w=%.8lg)\n", w);
-        for(q=0; q<NUM_C; q++)
+        if(w < sL)
         {
-            U[q] = UR[q];
-            F[q] = FR[q];
+            if(DEBUG3 || DEBUG4)
+                printf("    State  L!! (w=%.8lg)\n", w);
+            for(q=0; q<NUM_C; q++)
+            {
+                U[q] = UL[q];
+                F[q] = FL[q];
+            }
+            zone = -3;
         }
-        zone = 5;
+        else if (w < sR)
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State HLL!! (w=%.8lg)\n", w);
+            for(q=0; q<NUM_C; q++)
+            {
+                U[q] = Uhll[q];
+                F[q] = Fhll[q];
+            }
+            zone = -2;
+        }
+        else
+        {
+            if(DEBUG3 || DEBUG4)
+                printf("    State  R!! (w=%.8lg)\n", w);
+            for(q=0; q<NUM_C; q++)
+            {
+                U[q] = UR[q];
+                F[q] = FR[q];
+            }
+            zone = -1;
+        }
     }
+
     if(DEBUG4)
         printf("Wavespeeds: %.8lg %.8lg %.8lg %.8lg %.8lg\n",
                             sL, saL, sc, saR, sR);
@@ -583,6 +693,37 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
         printf("  Done solve_HLLD_SR\n");
 
     return zone;
+}
+
+int checkSolution(double Ps, double sL, double sR, double *vaL, double *vaR, 
+                    double *BaL, double *BaR, double enthL, double enthR, 
+                    double *KaL, double *KaR, double *Bc, double *vcL, 
+                    double *vcR)
+{
+    int success = 1;
+
+    if(Ps != Ps)
+        success = 0;
+    if(enthL < Ps || enthR < Ps)
+        success = 0;
+    if(enthL < Ps || enthR < Ps)
+        success = 0;
+    if(fabs(vaL[0]) > 1.0 || fabs(vaL[1]) > 1.0 || fabs(vaL[2]) > 1.0)
+        success = 0;
+    if(fabs(vaR[0]) > 1.0 || fabs(vaR[1]) > 1.0 || fabs(vaR[2]) > 1.0)
+        success = 0;
+    if(vaL[0] < sL || vaR[0] > sR)
+        success = 0;
+    if(fabs(vcL[0]) > 1.0 || fabs(vcL[1]) > 1.0 || fabs(vcL[2]) > 1.0)
+        success = 0;
+    if(fabs(vcR[0]) > 1.0 || fabs(vcR[1]) > 1.0 || fabs(vcR[2]) > 1.0)
+        success = 0;
+    if(vcL[0] < sL || vcR[0] > sR)
+        success = 0;
+    if(KaL[0] < sL || KaR[0] > sR)
+        success = 0;
+
+    return success;
 }
 
 void calc_va(double p, double s, double Bx, double *R, double *va, double *dva)
@@ -729,10 +870,10 @@ void cont_func(double Bx, double *BaL, double *BaR,
     {
         double dBch[3];
         dBch[0] = (dsaR - dsaL) * Bx;
-        dBch[1] = (dBaR[1]*(saR-vaR[1]) + BaR[1]*(dsaR-dvaR[1]) + Bx*dvaR[1])
-                - (dBaL[1]*(saL-vaL[1]) + BaL[1]*(dsaL-dvaL[1]) + Bx*dvaL[1]);
-        dBch[2] = (dBaR[2]*(saR-vaR[2]) + BaR[2]*(dsaR-dvaR[2]) + Bx*dvaR[2])
-                - (dBaL[2]*(saL-vaL[2]) + BaL[2]*(dsaL-dvaL[2]) + Bx*dvaL[2]);
+        dBch[1] = (dBaR[1]*(saR-vaR[0]) + BaR[1]*(dsaR-dvaR[0]) + Bx*dvaR[1])
+                - (dBaL[1]*(saL-vaL[0]) + BaL[1]*(dsaL-dvaL[0]) + Bx*dvaL[1]);
+        dBch[2] = (dBaR[2]*(saR-vaR[0]) + BaR[2]*(dsaR-dvaR[0]) + Bx*dvaR[2])
+                - (dBaL[2]*(saL-vaL[0]) + BaL[2]*(dsaL-dvaL[0]) + Bx*dvaL[2]);
         
         double dKaL2 = 2*(KaL[0]*dKaL[0] + KaL[1]*dKaL[1] + KaL[2]*dKaL[2]);
         double dKaR2 = 2*(KaR[0]*dKaR[0] + KaR[1]*dKaR[1] + KaR[2]*dKaR[2]);
@@ -838,11 +979,36 @@ int calc_Ps(double *RL, double *RR, double Bx, double sL, double sR,
 
         p1 = p + dp;
 
-        if(DEBUG4)
+        if(p1 < 0.0)
+            p1 = 0.5*p;
+
+        if(enthL < 0.0 || enthR < 0.0)
+            p1 = 0.8*p;
+
+        if(DEBUG4 || dp != dp)
+        {
             printf("      %d: p=%.12lg dp=%.12lg f=%.12lg df=%.12lg\n",
                     i, p, dp, f, df);
-        if(dp != dp)
+            //printf("          dBaL=(%.6lg %.6lg %.6lg) dBaR=(%.6lg %.6lg %.6lg)\n", dBaL[0], dBaL[1], dBaL[2], dBaR[0], dBaR[1], dBaR[2]);
+            //printf("          dvaL=(%.6lg %.6lg %.6lg) dvaR=(%.6lg %.6lg %.6lg)\n", dvaL[0], dvaL[1], dvaL[2], dvaR[0], dvaR[1], dvaR[2]);
+            //printf("          dKaL=(%.6lg %.6lg %.6lg) dKaR=(%.6lg %.6lg %.6lg)\n", dKaL[0], dKaL[1], dKaL[2], dKaR[0], dKaR[1], dKaR[2]);
+            //printf("          denthL=%.6lg denthR=%.6lg\n", denthL, denthR);
+        }
+        if(dp != dp && DEBUG)
         {
+            if(!DEBUG4)
+            {
+                printf("      RL: %.16lg %.16lg %.16lg %.16lg\n", 
+                        RL[0], RL[1], RL[2], RL[3]);
+                printf("          %.16lg %.16lg %.16lg %.16lg\n", 
+                        RL[4], RL[5], RL[6], RL[7]);
+                printf("      RR: %.16lg %.16lg %.16lg %.16lg\n", 
+                        RR[0], RR[1], RR[2], RR[3]);
+                printf("          %.16lg %.16lg %.16lg %.16lg\n", 
+                        RR[4], RR[5], RR[6], RR[7]);
+                printf("      Bx = %.16lg, sL = %.16lg, sR = %.16lg\n",
+                        Bx, sL, sR);
+            }
             printf("        va: (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg)\n",
                     vaL[0], vaL[1], vaL[2], vaR[0], vaR[1], vaR[2]);
             printf("        Ba: (%.6lg %.6lg %.6lg) (%.6lg %.6lg %.6lg)\n",

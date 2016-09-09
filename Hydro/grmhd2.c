@@ -7,7 +7,7 @@
 #define DEBUG2 0
 #define DEBUG3 0
 #define DEBUG4 0
-#define DEBUG_RMAX 0.15
+#define DEBUG_RMAX 0.4
 #define DEBUG_ZMAX 3.5
 #define ND 3
 
@@ -15,6 +15,8 @@
 #define LAXF_V 1.0
 
 #define MINDT_C 0
+
+#define EXACT_DISP 0
 
 //Global Functions
 double get_cs2( double );
@@ -616,36 +618,39 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
     double sl2 = hn * (al * (vSn2*(1.0-cf22) - dv2) / (1.0-v22*cf22) - bn);
     double sr2 = hn * (al * (vSn2*(1.0-cf22) + dv2) / (1.0-v22*cf22) - bn);
 
+    if(EXACT_DISP)
+    {
+        double vf1L, vf1R, vf2L, vf2R;
+        double rhoh1 = rho1 + gamma_law/(gamma_law-1)*P1;
+        double rhoh2 = rho2 + gamma_law/(gamma_law-1)*P2;
 
-    double vf1L, vf1R, vf2L, vf2R;
-    double rhoh1 = rho1 + gamma_law/(gamma_law-1)*P1;
-    double rhoh2 = rho2 + gamma_law/(gamma_law-1)*P2;
+        double vn1 = al*vSn1 - bn;
+        double vn2 = al*vSn2 - bn;
+        double un1 = w1*vn1/al;
+        double un2 = w2*vn2/al;
 
-    double vn1 = al*vSn1 - bn;
-    double vn2 = al*vSn2 - bn;
-    double un1 = w1*vn1/al;
-    double un2 = w2*vn2/al;
+        double Bn1 = B1[0]*n[0] + B1[1]*n[1] + B1[2]*n[2];
+        double Bn2 = B2[0]*n[0] + B2[1]*n[1] + B2[2]*n[2];
 
-    double Bn1 = B1[0]*n[0] + B1[1]*n[1] + B1[2]*n[2];
-    double Bn2 = B2[0]*n[0] + B2[1]*n[1] + B2[2]*n[2];
+        double bn1 = al*(Bn1 + uB1*un1)/w1;
+        double bn2 = al*(Bn2 + uB2*un2)/w2;
 
-    double bn1 = al*(Bn1 + uB1*un1)/w1;
-    double bn2 = al*(Bn2 + uB2*un2)/w2;
+        int I = calc_msfast(&vf1L, &vf1R, rhoh1, cs21, w1, vn1, b21, uB1, bn1, 
+                                al, bn, ign, x);
+        I = calc_msfast(&vf2L, &vf2R, rhoh2, cs22, w2, vn2, b22, uB2, bn2, 
+                                al, bn, ign, x);
 
-    int I = calc_msfast(&vf1L, &vf1R, rhoh1, cs21, w1, vn1, b21, uB1, bn1, al, 
-                            bn, ign, x);
-    I = calc_msfast(&vf2L, &vf2R, rhoh2, cs22, w2, vn2, b22, uB2, bn2, al, 
-                            bn, ign, x);
+        vf1L *= hn;
+        vf1R *= hn;
+        vf2L *= hn;
+        vf2R *= hn;
 
-    vf1L *= hn;
-    vf1R *= hn;
-    vf2L *= hn;
-    vf2R *= hn;
-
-    sl1 = vf1L;
-    sr1 = vf1R;
-    sl2 = vf2L;
-    sr2 = vf2R;
+        
+        sl1 = vf1L;
+        sr1 = vf1R;
+        sl2 = vf2L;
+        sr2 = vf2R;
+    }
 
     /*
     if(r < DEBUG_RMAX)
@@ -1678,6 +1683,8 @@ int solve_grmhd_disp(double *V, double v0, double va, double vb, int mode,
     int i = 0;
     double v, v1, dv, f, df;
 
+    int err = 0;
+
     v1 = v0;
 
     if(mode > 0)
@@ -1774,11 +1781,13 @@ int solve_grmhd_disp(double *V, double v0, double va, double vb, int mode,
         printf("  C1=%.16lg C2=%.16lg C3=%.16lg C4=%.16lg\n", C1, C2, C3, C4);
         printf("  bei=%.16lg vi=%.16lg b0=%.16lg bi=%.16lg\n", bei, vi, b0, bi);
         printf("  va=%.16lg vb=%.16lg\n", va, vb);
+
+        err = 1;
     }
 
     *V = v1;
 
-    return i;
+    return err;
 }
 
 int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w, 
@@ -1792,7 +1801,7 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
     double E = rhoh + b2;
 
     double viS = (vi+bei)/al;
-    double v2 = 1.0 - 1.0/w;
+    double v2 = 1.0 - 1.0/(w*w);
     double ds = sqrt(cs2*(igamii - viS*viS - cs2*(igamii*v2 - viS*viS))) / w;
     double vsR = al * (viS*(1-cs2) + ds) / (1.0 - v2*cs2) - bei;
     double vsL = al * (viS*(1-cs2) - ds) / (1.0 - v2*cs2) - bei;
@@ -1809,8 +1818,9 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
     double vLL = vsL < vAL ? vsL : vAL;
 
     double v0, v1, v, vR, vL, dv;
-    int i;
+    int err = 1;
 
+/*
     //Calculate roots of N4 given in Anile eq. 2.82
     v0 = vRR + 0.1*fabs(vRR);
     if(DEBUG4 && x[0] < DEBUG_RMAX)
@@ -1819,7 +1829,7 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
         printf("vfR: vsR = %.10lg vAR = %.10lg\n", vsR, vAR);
     }
 
-    i = solve_grmhd_disp(&vR, v0, vRR, 0.0, 4, C1, C2, C3, C4, 
+    err = solve_grmhd_disp(&vR, v0, vRR, 0.0, 4, C1, C2, C3, C4, 
                             bei, vi, b0, bi, x);
 
     v0 = vLL - 0.1*fabs(vLL);
@@ -1828,8 +1838,19 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
     if(DEBUG4 && x[0] < DEBUG_RMAX)
         printf("vfL: vsL = %.10lg vAL = %.10lg\n", vsL, vAL);
 
-    i = solve_grmhd_disp(&vL, v0, 0.0, vLL, 1, C1, C2, C3, C4, 
+    err += solve_grmhd_disp(&vL, v0, 0.0, vLL, 1, C1, C2, C3, C4, 
                             bei, vi, b0, bi, x);
+*/
+    if(err > 0)
+    {
+        double va2 = b2 / (rhoh + b2);
+        double cf2 = cs2 + va2 - cs2*va2;
+
+        double dv = sqrt(cf2*(igamii - viS*viS - cf2*(igamii*v2-viS*viS))) / w;
+
+        vL = al * (viS*(1.0-cf2) - dv) / (1.0-v2*cf2) - bei;
+        vR = al * (viS*(1.0-cf2) + dv) / (1.0-v2*cf2) - bei;
+    }
 
     /*
     if(x[0] < DEBUG_RMAX)
@@ -1850,5 +1871,5 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
     *velL = vL;
     *velR = vR;
 
-    return i;
+    return err;
 }
