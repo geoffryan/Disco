@@ -322,6 +322,36 @@ void calc_prim( struct domain * theDomain ){
    }
 }
 
+void calc_cons( struct domain * theDomain ){
+
+   struct cell ** theCells = theDomain->theCells;
+   int Nr = theDomain->Nr;
+   int Nz = theDomain->Nz;
+   int * Np = theDomain->Np;
+   double * r_jph = theDomain->r_jph;
+   double * z_kph = theDomain->z_kph;
+
+   int i,j,k;
+   for( j=0 ; j<Nr ; ++j ){
+      double rm = r_jph[j-1];
+      double rp = r_jph[j];
+      for( k=0 ; k<Nz ; ++k ){
+         int jk = j+Nr*k;
+         for( i=0 ; i<Np[jk] ; ++i ){
+            struct cell * c = &(theCells[jk][i]);
+            double phip = c->piph;
+            double phim = phip-c->dphi;
+            double xp[3] = {rp,phip,z_kph[k]  };
+            double xm[3] = {rm,phim,z_kph[k-1]};
+            double r = get_moment_arm( xp , xm );
+            double dV = get_dV( xp , xm );
+            double x[3] = {r, 0.5*(phim+phip), 0.5*(z_kph[k]+z_kph[k-1])};
+            prim2cons( c->prim , c->cons , x , dV );
+         }
+      }
+   }
+}
+
 void plm_phi( struct domain * );
 void riemann_phi( struct cell * , struct cell * , double * , double );
 

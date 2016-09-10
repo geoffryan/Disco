@@ -4,7 +4,7 @@
 #include "Hydro/metric.h"
 #include "Hydro/frame.h"
 
-#define ACC 1e-10
+#define ACC 1e-12
 #define MAX_ITER 10
 
 #define DEBUG 1
@@ -525,12 +525,145 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
         {
             if(DEBUG4)
                 printf("Third Attempt.\n");
-            Ps = 0.7*Pshll;
-            err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
-            calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
-                        &enthL, &enthR, KL, KR, Bc, vcL, vcR);
-            success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, enthL, 
-                                    enthR, KL, KR, Bc, vcL, vcR);
+
+            double Ap = RL[MX]-sL*RL[EN];
+            double C = RL[MY]*RL[BY] + RL[MZ]*RL[BZ];
+            double G = RL[BY]*RL[BY] + RL[BZ]*RL[BZ];
+            double a = -sL*(1.0-sL*sL);
+            double b = (sL*Bx*Bx - RL[EN])*(1.0-sL*sL) - sL*(Ap+G);
+            double c = Bx*(sL*Bx*Ap + C) - (Ap+G)*RL[EN]; 
+
+            double desc = b*b-4*a*c;
+            if(desc < 0)
+                success = 0;
+            else
+            {
+                double Psing1 = (-b - sqrt(b*b-4*a*c)) / (2*a);
+                double Psing2 = (-b + sqrt(b*b-4*a*c)) / (2*a);
+                double del = 1.0e-1;
+                if(Psing1 > 0.0)
+                {
+                    if(DEBUG4)
+                        printf("PL1-.\n");
+                    Ps = Psing1*(1.0+del);
+                    err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                    calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                    success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, 
+                                            enthL, enthR, KL, KR, Bc, 
+                                            vcL, vcR);
+                    if(!success)
+                    {
+                        if(DEBUG4)
+                            printf("PL1+.\n");
+                        Ps = Psing1*(1.0-del);
+                        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                    &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, 
+                                                BaR, 
+                                                enthL, enthR, KL, KR, Bc, 
+                                                vcL, vcR);
+                    }
+                }
+                if(!success && Psing2 > 0.0)
+                {
+                    if(DEBUG4)
+                        printf("PL2-.\n");
+                    Ps = Psing2*(1.0+del);
+                    err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                    calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                    success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, 
+                                            enthL, enthR, KL, KR, Bc, 
+                                            vcL, vcR);
+                    if(!success)
+                    {
+                        if(DEBUG4)
+                            printf("PL2+.\n");
+                        Ps = Psing2*(1.0-del);
+                        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                    &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, 
+                                                BaR, 
+                                                enthL, enthR, KL, KR, Bc, 
+                                                vcL, vcR);
+                    }
+                }
+            }
+        }
+        if(!success)
+        {
+            if(DEBUG4)
+                printf("Fourth Attempt.\n");
+
+            double Ap = RR[MX]-sR*RR[EN];
+            double C = RR[MY]*RR[BY] + RR[MZ]*RR[BZ];
+            double G = RR[BY]*RR[BY] + RR[BZ]*RR[BZ];
+            double a = -sR*(1.0-sR*sR);
+            double b = (sR*Bx*Bx - RR[EN])*(1.0-sR*sR) - sR*(Ap+G);
+            double c = Bx*(sR*Bx*Ap + C) - (Ap+G)*RR[EN]; 
+
+            double desc = b*b-4*a*c;
+            if(desc < 0)
+                success = 0;
+            else
+            {
+                double Psing1 = (-b + sqrt(b*b-4*a*c)) / (2*a);
+                double Psing2 = (-b - sqrt(b*b-4*a*c)) / (2*a);
+                double del = 1.0e-1;
+                if(Psing1 > 0.0)
+                {
+                    if(DEBUG4)
+                        printf("PR1-.\n");
+                    Ps = Psing1*(1.0+del);
+                    err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                    calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                    success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, 
+                                            enthL, enthR, KL, KR, Bc, 
+                                            vcL, vcR);
+                    if(!success)
+                    {
+                        if(DEBUG4)
+                            printf("PR1+.\n");
+                        Ps = Psing1*(1.0-del);
+                        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                    &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, 
+                                                BaR, 
+                                                enthL, enthR, KL, KR, Bc, 
+                                                vcL, vcR);
+                    }
+                }
+                if(!success && Psing2 > 0.0)
+                {
+                    if(DEBUG4)
+                        printf("PR2-.\n");
+                    Ps = Psing2*(1.0+del);
+                    err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                    calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                    success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, BaR, 
+                                            enthL, enthR, KL, KR, Bc, 
+                                            vcL, vcR);
+                    if(!success)
+                    {
+                        if(DEBUG4)
+                            printf("PR2+.\n");
+                        Ps = Psing2*(1.0-del);
+                        err = calc_Ps(RL, RR, Bx, sL, sR, &Ps);
+                        calc_state(Ps, RL, RR, Bx, sL, sR, vaL, vaR, BaL, BaR, 
+                                    &enthL, &enthR, KL, KR, Bc, vcL, vcR);
+                        success = checkSolution(Ps, sL, sR, vaL, vaR, BaL, 
+                                                BaR, 
+                                                enthL, enthR, KL, KR, Bc, 
+                                                vcL, vcR);
+                    }
+                }
+            }
         }
     }
     else

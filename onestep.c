@@ -12,6 +12,7 @@ void adjust_RK_planets( struct domain * , double );
 void move_cells( struct domain * , double );
 void calc_dp( struct domain * );
 void calc_prim( struct domain * );
+void calc_cons( struct domain * );
 void B_faces_to_cells( struct domain * , int );
 
 void setup_faces( struct domain * , int );
@@ -79,12 +80,20 @@ void onestep( struct domain * theDomain , double RK , double dt , int first_step
    }
    clean_pi( theDomain );
    calc_dp( theDomain );
-
+/*
    if( bflag && theDomain->theParList.CT ){
       B_faces_to_cells( theDomain , 1 );
    }
+   */
 
    calc_prim( theDomain ); //ORDERING??? AFTER?
+   
+   if( bflag && theDomain->theParList.CT ){
+      B_faces_to_cells( theDomain , 0 );
+   }
+
+   //TODO: interaction with MHD? Hail Mary
+   calc_cons(theDomain);
 
    if( last_step ){
       AMR( theDomain );
