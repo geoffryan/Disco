@@ -6,8 +6,8 @@ void setICparams( struct domain * theDomain ){
 
 void initial( double * prim , double * x ){
 
-    double fac = 1.0e-3;
-    double bfac = 1.0;
+    double fac = 1.0e-1;
+    double bfac = 0.0;
     double vfac = 0.0;
    prim[RHO] = 1.0;
    prim[PPP] = 1.0*fac*fac;

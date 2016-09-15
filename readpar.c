@@ -7,7 +7,7 @@ int readvar( char * filename , char * varname , int vartype , void * ptr ){
 
    FILE * inFile = fopen( filename , "r" );
    char s[512];
-   char nm[512];
+   char nm[512]="";
    char s1[512];
    int found = 0;
    

@@ -23,7 +23,7 @@ void initial( double * prim , double * x ){
     prim[RHO] = rho;
     prim[PPP] = Pp;
     prim[URR] = 0.0;
-    prim[UPP] = omega / sqrt(1-r*r*omega*omega);
+    prim[UPP] = omega*r*r / sqrt(1-r*r*omega*omega);
     prim[UZZ] = 0.0;
 
     prim[BRR] =  Bx*cos(phi);

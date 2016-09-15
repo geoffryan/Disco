@@ -8,14 +8,16 @@ void initial( double * prim , double * x ){
    double r   = x[0];
    double phi = x[1];
 
-   double rhoI = 1.0e-2;
+   double rho0 = 1.0e-2;
+
+   double rhoI = rho0;
    double PpI   = 1.0;
-   double rhoO = 1.0e-4;
+   double rhoO = 1.0e-2 * rho0;
    double PpO   = 3.0e-5;
    double r1 = 0.8;
    double r2 = 1.0;
    
-   double b = 1.0;//1.0e-3; //0.1;
+   double b = 0.1;//1.0e-3; //0.1;
    double phi0 = 0.0; //M_PI/4.;
 
    double rho, Pp;
