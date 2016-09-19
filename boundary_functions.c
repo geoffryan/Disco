@@ -6,6 +6,7 @@ void initial( double * , double * );
 double get_dV( double * , double * );
 void cons2prim( double * , double * , double * , double );
 void prim2cons( double * , double * , double * , double );
+double get_moment_arm(double *, double *);
 void subtract_omega( double * );
 void reflect_prims(double *, double *, int);
 
@@ -49,7 +50,7 @@ void set_cells_copy(struct cell *c, int Np, struct face *theFaces,
             cDst = f->L;
         }
         for(q=0; q<NUM_Q; q++)
-            cDst->prim[q] += cSrc->prim[q] * f->dA;
+            (cDst->prim)[q] += (cSrc->prim)[q] * (f->dA);
         cDst->tempDoub += f->dA;
     }
     
@@ -63,7 +64,7 @@ void set_cells_copy(struct cell *c, int Np, struct face *theFaces,
 
 void set_cells_copy_distant(struct cell *c, int Np, struct cell *c1, int Np1)
 {
-    // Copies annulus c1 to c. Then calls reflect_prim() on each cell in c.
+    // Copies annulus c1 to c.
 
     int i, q;
 
@@ -88,6 +89,9 @@ void set_cells_copy_distant(struct cell *c, int Np, struct cell *c1, int Np1)
             break;
     }
 
+    if(i1 >= Np1)
+        i1 = 0;
+
     //Loop through all cells c, add contributions from all neighbours in c1.
     for(i=0; i<Np; i++)
     {
@@ -98,6 +102,7 @@ void set_cells_copy_distant(struct cell *c, int Np, struct cell *c1, int Np1)
         {
             phip1 = c1[i1].piph;
             phim1 = c1[i1].piph - c1[i1].dphi;
+
             while(phip1 < phim)
             {
                 phip1 += 2*M_PI;
@@ -111,11 +116,19 @@ void set_cells_copy_distant(struct cell *c, int Np, struct cell *c1, int Np1)
             double phi1 = phip < phip1? phip : phip1;
             double phi2 = phim > phim1? phim : phim1;
             double dphi = phi1-phi2;
+
+            if(dphi< 0.0)
+                printf("WHOA %d %d %.12lg\n", i, i1, dphi);
             for(q=0; q<NUM_Q; q++)
                 c[i].prim[q] += c1[i1].prim[q] * dphi;
-            i1++;
+
+            i1 = i1 < Np1-1 ? i1+1 : 0;
+            if(i1 == Np1)
+                i1 = 0;
         }
         while(phip1 < phip);
+        i1 = i1 > 0 ? i1-1 : Np1-1;
+
     }
 
     // Divide by total area.
@@ -142,8 +155,8 @@ void boundary_fixed_rinn( struct domain *theDomain)
 
     if(dim_rank[0] == 0 )
     {
-        for(j=0; j<Ng; j++)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=0; j<Ng; j++)
             {
                 int jk = j+Nr*k;
                 for(i=0; i<Np[jk]; i++)
@@ -170,8 +183,8 @@ void boundary_fixed_rout( struct domain *theDomain)
 
     if(dim_rank[0] == dim_size[0]-1)
     {
-        for(j=Nr-Ng; j<Nr; j++)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=Nr-Ng; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 for(i=0; i<Np[jk]; i++)
@@ -198,8 +211,8 @@ void boundary_fixed_zbot( struct domain *theDomain)
 
     if(dim_rank[1] == 0)
     {
-        for(j=0; j<Nr; j++)
-            for(k=0; k<Ng; k++)
+        for(k=0; k<Ng; k++)
+            for(j=0; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 for(i=0; i<Np[jk]; i++)
@@ -225,8 +238,8 @@ void boundary_fixed_ztop( struct domain *theDomain)
 
     if(dim_rank[1] == dim_size[1]-1)
     {
-        for(j=0; j<Nr; j++)
-            for(k=Nz-Ng; k<Nz; k++)
+        for(k=Nz-Ng; k<Nz; k++)
+            for(j=0; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 for(i=0; i<Np[jk]; i++)
@@ -255,12 +268,13 @@ void boundary_zerograd_rinn( struct domain *theDomain, int diode)
 
     if(dim_rank[0] == 0 )
     {
-        for(j=Ng-1; j>=0; j--)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=Ng-1; j>=0; j--)
             {
                 int jk = j+Nr*k;
-                int n0 = fIndex[jk];
-                int n1 = fIndex[jk+1];
+                int JK = j+(Nr-1)*k;
+                int n0 = fIndex[JK];
+                int n1 = fIndex[JK+1];
 
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, -1);
             }
@@ -287,13 +301,14 @@ void boundary_zerograd_rout( struct domain *theDomain, int diode)
 
     if(dim_rank[0] == dim_size[0]-1)
     {
-        for(j=Nr-Ng; j<Nr; j++)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=Nr-Ng; j<Nr; j++)
             {
-                int jk = j+Nr*k;
-                int n0 = fIndex[jk-1];
-                int n1 = fIndex[jk];
-
+                int jk = j + Nr*k;
+                int JK = j-1 + (Nr-1)*k;
+                int n0 = fIndex[JK];
+                int n1 = fIndex[JK+1];
+                
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, +1);
             }
     }
@@ -381,8 +396,8 @@ void boundary_reflect_rinn( struct domain *theDomain)
 
     if(dim_rank[0] == 0 )
     {
-        for(j=Ng-1; j>=0; j--)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=Ng-1; j>=0; j--)
             {
                 int jk = j+Nr*k;
                 
@@ -424,8 +439,8 @@ void boundary_reflect_rout( struct domain *theDomain)
 
     if(dim_rank[0] == dim_size[0]-1)
     {
-        for(j=Nr-Ng; j<Nr; j++)
-            for(k=0; k<Nz; k++)
+        for(k=0; k<Nz; k++)
+            for(j=Nr-Ng; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 
@@ -467,8 +482,8 @@ void boundary_reflect_zbot( struct domain *theDomain)
 
     if(dim_rank[1] == 0)
     {
-        for(j=0; j<Nr; j--)
-            for(k=Ng-1; k>=0; k--)
+        for(k=Ng-1; k>=0; k--)
+            for(j=0; j<Nr; j--)
             {
                 int jk = j+Nr*k;
                 
@@ -510,8 +525,8 @@ void boundary_reflect_ztop( struct domain *theDomain)
 
     if(dim_rank[1] == dim_size[1]-1)
     {
-        for(j=0; j<Nr; j++)
-            for(k=Nz-Ng; k<Nz; k++)
+        for(k=Nz-Ng; k<Nz; k++)
+            for(j=0; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 

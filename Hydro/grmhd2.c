@@ -8,7 +8,7 @@
 #define DEBUG3 0
 #define DEBUG4 0
 #define DEBUG_RMAX 0.4
-#define DEBUG_ZMAX 3.5
+#define DEBUG_ZMAX 0.8
 #define ND 3
 
 #define LAXF 0
@@ -141,7 +141,7 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
     double rhoh = rho + gamma_law/(gamma_law-1.0)*Pp + b2;
     double rhoe = Pp / (gamma_law-1.0);
 
-    if(DEBUG2 && r < DEBUG_RMAX)
+    if(DEBUG2 && r < DEBUG_RMAX && fabs(x[2]) < DEBUG_ZMAX)
     {
         printf("B2 = %.12lg, uB = %.12lg, UB = %.12lg\n", B2, uB, UB);
         printf("bd[0] = %.12lg, bd[1] = %.12lg, bd[2] = %.12lg\n", 
@@ -166,7 +166,7 @@ void prim2cons( double *prim, double *cons, double *x, double dV)
     for(q = NUM_C; q < NUM_Q; q++)
         cons[q] = prim[q]*cons[DDD];
   
-    if(DEBUG3 && r < DEBUG_RMAX)
+    if(DEBUG3 && r < DEBUG_RMAX && fabs(x[2]) < DEBUG_ZMAX)
     {
         FILE *f = fopen("p2c.out", "a");
         fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
@@ -350,7 +350,7 @@ void flux(double *prim, double *flux, double *x, double *n)
     for(q = NUM_C; q < NUM_Q; q++)
         flux[q] = prim[q]*flux[DDD];
    
-    if(DEBUG3 && r < DEBUG_RMAX)
+    if(DEBUG3 && r < DEBUG_RMAX && fabs(x[2]) < DEBUG_ZMAX)
     {
         FILE *f = fopen("flux.out", "a");
         fprintf(f, "%.1lf %.1lf %.10lg %.10lg\n",
@@ -484,7 +484,7 @@ void source(double *prim, double *cons, double *xp, double *xm, double dVdt)
     cons[SZZ] += jac * Sk[2] * dVdt;
     cons[TAU] += jac * S0 * dVdt;
 
-    if(DEBUG3 && r < DEBUG_RMAX)
+    if(DEBUG3 && r < DEBUG_RMAX && fabs(x[2]) < DEBUG_ZMAX)
     {
         FILE *f = fopen("source.out", "a");
         fprintf(f, "%.12lg %.12lg %.12lg %.12lg\n",
@@ -653,7 +653,7 @@ void vel(double *prim1, double *prim2, double *Sl, double *Sr, double *Ss,
     }
 
     /*
-    if(r < DEBUG_RMAX)
+    if(r < DEBUG_RMAX && fabs(x[2]) < DEBUG_ZMAX)
     {
         printf("x: (%.12lg %.12lg) n: (%.1lf %.1lf)\n", x[0], x[1], n[0], n[1]);
         printf("   sl1: %.12lg sr1: %.12lg sl2: %.12lg sr2: %.12lg\n", 
