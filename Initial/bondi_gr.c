@@ -6,6 +6,9 @@ void setICparams( struct domain * theDomain ){
 
 void initial( double * prim , double * x ){
 
+    double P0 = 1.0e-2;
+    double b0 = 1.0e-2;
+
     prim[RHO] = 1.0;
     prim[PPP] = 1.0e-2;
     prim[URR] = 0.0;
@@ -14,7 +17,7 @@ void initial( double * prim , double * x ){
 
     if(NUM_C > 5)
     {
-        prim[BRR] = 0.0;
+        prim[BRR] = b0;
         prim[BPP] = 0.0;
         prim[BZZ] = 0.0;
     }

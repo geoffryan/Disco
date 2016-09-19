@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 xscale = "log"
 yscale = "log"
 GAM = 1.66666666667
+RMIN = 0.0
 RMAX = np.inf
 M = 1.0
 
@@ -27,8 +28,8 @@ def loadCheckpoint(filename):
     phi = np.zeros(piph.shape)
     R = 0.5*(riph[1:] + riph[:-1])
     Z = 0.5*(ziph[1:] + ziph[:-1])
-    for i in xrange(index.shape[0]):
-        for k in xrange(index.shape[1]):
+    for i in range(index.shape[0]):
+        for k in range(index.shape[1]):
             ind0 = index[i,k]
             ind1 = ind0 + nphi[i,k]
             r[ind0:ind1] = R[i]
@@ -39,8 +40,11 @@ def loadCheckpoint(filename):
             phi[ind0:ind1] = 0.5*(pimh+piph_strip)
 
     if RMAX > 0:
-        ind = r < RMAX
+        R2 = r*r + z*z
+        ind = (R2 < RMAX*RMAX) * (R2 > RMIN*RMIN)
         r = r[ind]
+        phi = phi[ind]
+        z = z[ind]
         prim = prim[ind,:]
 
     return t, r, phi, z, prim
@@ -74,7 +78,7 @@ def plotCheckpoint(file):
         Phi1 = np.zeros(r.shape)
         Phi2 = np.zeros(r.shape)
 
-    print prim.shape
+    print(prim.shape)
 
     al = 1.0 / np.sqrt(1.0 + 2*M/R)
     ber = 2*M/R * sinth / (1.0 + 2*M/R)

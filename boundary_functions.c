@@ -2,6 +2,8 @@
 #include "paul.h"
 #include <string.h>
 
+#define R_HOR 1.5
+
 void initial( double * , double * );
 double get_dV( double * , double * );
 void cons2prim( double * , double * , double * , double );
@@ -549,3 +551,45 @@ void boundary_reflect_ztop( struct domain *theDomain)
             }
     }
 }
+
+void boundary_fixed_horizon( struct domain *theDomain)
+{
+    struct cell **theCells = theDomain->theCells;
+
+    int Nr = theDomain->Nr;
+    int Nz = theDomain->Nz;
+    int *Np = theDomain->Np;
+    int Ng = theDomain->Ng;
+    double *r_jph = theDomain->r_jph;
+    double *z_kph = theDomain->z_kph;
+
+    int *dim_rank = theDomain->dim_rank;
+    int *dim_size = theDomain->dim_size;
+
+    int i,j,k;
+
+    if(dim_rank[0] == 0 )
+    {
+        for(k=0; k<Nz; k++)
+        {
+            double zm = z_kph[k-1];
+            double zp = z_kph[k];
+            double zo = fabs(zp)>fabs(zm) ? zp : zm;
+
+            for(j=0; j<Ng; j++)
+            {
+                double ro = r_jph[j];
+
+                double R = sqrt(zo*zo + ro*ro);
+                
+                if(R < R_HOR)
+                {
+                    int jk = j+Nr*k;
+                    for(i=0; i<Np[jk]; i++)
+                        set_cell_init(&(theCells[jk][i]), r_jph, z_kph, j, k);
+                }  
+            }
+        }
+    }
+}
+
