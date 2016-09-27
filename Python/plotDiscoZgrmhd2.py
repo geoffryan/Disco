@@ -113,7 +113,7 @@ def plotCheckpoint(file):
 
     plt.tight_layout()
 
-    name = file.split('.')[0].split('_')[-1]
+    name = file.split('/')[-1].split('.')[0].split('_')[-1]
     plotname = "plot_r_{0:s}.png".format(name)
     
     print("   Saving {0:s}...".format(plotname))

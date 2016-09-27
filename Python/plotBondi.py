@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 xscale = "log"
 yscale = "log"
-GAM = 1.66666666667
+GAM = 1.33333333333333
 RMIN = 0.0
 RMAX = np.inf
 M = 1.0
@@ -151,7 +151,7 @@ def plotCheckpoint(file):
 
     plt.tight_layout()
 
-    name = file.split('.')[0].split('_')[-1]
+    name = file.split('/')[-1].split('.')[0].split('_')[-1]
     plotname = "plot_bondi_{0:s}.png".format(name)
     
     print("   Saving {0:s}...".format(plotname))
