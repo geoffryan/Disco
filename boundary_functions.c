@@ -586,7 +586,10 @@ void boundary_fixed_horizon( struct domain *theDomain)
                 {
                     int jk = j+Nr*k;
                     for(i=0; i<Np[jk]; i++)
+                    {
                         set_cell_init(&(theCells[jk][i]), r_jph, z_kph, j, k);
+                        theCells[jk][i].real = 0;
+                    }
                 }  
             }
         }
