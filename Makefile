@@ -11,12 +11,15 @@ FLAGS = -O3 -Wall -g
 INC = -I$(H55)/include
 LIB = -L$(H55)/lib -lm -lhdf5
 
-OBJ = main.o readpar.o timestep.o onestep.o riemann.o mpisetup.o gridsetup.o domain.o misc.o geometry.o faces_alt.o exchange.o plm.o report.o profiler.o planet.o omega.o analysis.o bfields.o $(HLLD).o rotframe.o boundary_functions.o $(INITIAL).o $(OUTPUT).o $(HYDRO).o $(BOUNDARY).o $(RESTART).o $(PLANETS).o $(METRIC).o $(FRAME).o #snapshot.o
+OBJ = main.o readpar.o timestep.o onestep.o riemann.o mpisetup.o gridsetup.o domain.o misc.o geometry.o faces_alt.o exchange.o plm.o report.o profiler.o planet.o omega.o analysis.o bfields.o $(HLLD).o rotframe.o boundary_functions.o $(INITIAL).o $(OUTPUT).o $(HYDRO).o $(BOUNDARY).o $(RESTART).o $(PLANETS).o $(METRIC).o $(FRAME).o calc.o #snapshot.o
 
 default: disco
 
 %.o: %.c paul.h
 	$(CC) $(FLAGS) $(INC) -c $<
+
+calc.o: Calc/*.c Calc/calc.h
+	$(CC) $(FLAGS) $(INC) -c Calc/*.c -o calc.o
 
 $(TIMESTEP).o: Timestep/$(TIMESTEP).c paul.h
 	$(CC) $(FLAGS) $(INC) -c Timestep/$(TIMESTEP).c
