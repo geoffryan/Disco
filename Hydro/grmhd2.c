@@ -3,7 +3,7 @@
 #include "metric.h"
 #include "frame.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG2 0
 #define DEBUG3 0
 #define DEBUG4 0

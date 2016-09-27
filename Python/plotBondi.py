@@ -60,9 +60,14 @@ def plotCheckpoint(file):
     lr = prim[:,2]
     lp = prim[:,3]
     lz = prim[:,4]
-    Br = prim[:,5]
-    Bp = prim[:,6]/r
-    Bz = prim[:,7]
+    try:
+        Br = prim[:,5]
+        Bp = prim[:,6]/r
+        Bz = prim[:,7]
+    except:
+        Br = np.zeros(r.shape)
+        Bp = np.zeros(r.shape)
+        Bz = np.zeros(r.shape)
 
     th = np.arctan2(r, z)
     R = np.sqrt(r*r+z*z)

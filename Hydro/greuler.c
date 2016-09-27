@@ -4,7 +4,7 @@
 #include "frame.h"
 
 #define DEBUG 0
-#define ND 2
+#define ND 3
 
 //Global Functions
 double get_cs2( double );
