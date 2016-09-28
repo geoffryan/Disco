@@ -1,7 +1,9 @@
 import sys
+import math
 import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
+import calc as ca
 
 xscale = "log"
 yscale = "log"
@@ -9,6 +11,21 @@ GAM = 1.33333333333333
 RMIN = 0.0
 RMAX = np.inf
 M = 1.0
+
+
+def bondiExact(Mdot, Rs, M, R):
+
+    us2 = M / (2*Rs)
+    as2 = us2 / (1-3*us2)
+    us = -math.sqrt(us2)
+    rhos = -Mdot / (4*np.pi*Rs*Rs*us)
+    a0 = math.sqrt((GAM-1) * (1 - math.sqrt(1+3*as2) * abs(1-as2/(GAM-1))))
+
+    rho, uSC, P = ca.bondi_rel(Mdot, M, GAM, a0, R)
+
+    u = uSC  # Kerr-Schild u^R == Schwarzschild u^R
+
+    return rho, u, P
 
 def loadCheckpoint(filename):
 
@@ -49,7 +66,7 @@ def loadCheckpoint(filename):
 
     return t, r, phi, z, prim
 
-def plotCheckpoint(file):
+def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     
     print("Loading {0:s}...".format(file))
 
@@ -127,6 +144,8 @@ def plotCheckpoint(file):
     Ma = np.sqrt(u2) / (cs/np.sqrt(1-cs*cs))
     Mdot = -R*R*rho*uR
 
+
+
     print("   Plotting...")
     nq = prim.shape[1]
 
@@ -135,15 +154,29 @@ def plotCheckpoint(file):
     plotAx(ax[0,1], R, P, xscale, yscale, r"$R$", r"$P$", 'k+')
     plotAx(ax[0,2], R, P/rho, xscale, yscale, r"$R$", r"$P/\rho$", 'k+')
     plotAx(ax[0,3], R, cs, xscale, yscale, r"$R$", r"$c_s$", 'k+')
-    plotAx(ax[1,0], R, uR, xscale, "linear", R"$R$", R"$u^R$", 'k+')
-    plotAx(ax[1,1], R, up, xscale, "linear", R"$R$", R"$u^\phi$",'k+')
-    plotAx(ax[1,2], R, s, xscale, yscale, R"$R$", R"$s$", 'k+')
-    plotAx(ax[1,3], R, Ma, xscale, yscale, R"$R$", R"$\mathcal{M}$", 'k+')
-    plotAx(ax[2,0], R, Br, xscale, "linear", R"$R$", R"$B^R$", 'k+')
-    plotAx(ax[2,1], R, Bp, xscale, "linear", R"$R$", R"$B^\phi$",'k+')
-    plotAx(ax[2,2], R, b2/P, xscale, yscale, R"$R$", R"$b^2/P$", 'k+')
-    plotAx(ax[2,3], R, cA, xscale, yscale, R"$R$", R"$c_A$", 'k+')
+    plotAx(ax[1,0], R, uR, xscale, "linear", r"$R$", r"$u^R$", 'k+')
+    plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",'k+')
+    plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 'k+')
+    plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 'k+')
+    plotAx(ax[2,0], R, Br, xscale, "linear", r"$R$", r"$B^R$", 'k+')
+    plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",'k+')
+    plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 'k+')
+    plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 'k+')
     plotAx(ax[3,0], r, Mdot, xscale, "linear", r"$R$", r"$\dot{M} = R^2\rho u^R$", 'k+')
+
+    if plotExact:
+        RR = np.logspace(math.log10(2.0*M), math.log10(R.max()), 100)
+        rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
+        csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))
+        sE = np.log(PE * np.power(rhoE, -GAM)) / (GAM-1.0)
+        plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
+        plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
+        plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
+        plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
+        plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
+        plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
+        plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
+                        xscale, "linear", None, None, 'r-')
 
     title = "DISCO t = {0:.3g}".format(t)
 
@@ -161,8 +194,10 @@ def plotCheckpoint(file):
 
 def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
     ax.plot(x, y, *args, **kwargs)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
     ax.set_xscale(xscale)
     if (y>0).any():
         ax.set_yscale(yscale)
@@ -178,4 +213,4 @@ if __name__ == "__main__":
 
     files = sys.argv[1:]
     for f in files:
-        plotCheckpoint(f)
+        plotCheckpoint(f, plotExact=True, exactMdot=1.0, exactRs=10.0)

@@ -100,7 +100,7 @@ int bondi_rel(double Mdot, double GM, double gam, double a0,
     double rhos = -Mdot / (4*M_PI*rs*rs*us);
     double K = as*as / ((1 - as*as/(gam-1)) * pow(rhos,gam-1) * gam);
 
-    printf("rs: %.8lg us: %.8lg as: %.8lg\n", rs, us, as);
+    printf("M: %.8lg rs: %.8lg us: %.8lg as: %.8lg\n", GM, rs, us, as);
 
     double rho0 = pow(a0*a0 / (gam*K*(1.0-a0*a0/(gam-1))), 1.0/(gam-1));
 
