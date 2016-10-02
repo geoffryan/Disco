@@ -3,7 +3,6 @@ import math
 import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
-import calc as ca
 
 xscale = "log"
 yscale = "log"
@@ -165,18 +164,22 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     plotAx(ax[3,0], r, Mdot, xscale, "linear", r"$R$", r"$\dot{M} = R^2\rho u^R$", 'k+')
 
     if plotExact:
-        RR = np.logspace(math.log10(2.0*M), math.log10(R.max()), 100)
-        rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
-        csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))
-        sE = np.log(PE * np.power(rhoE, -GAM)) / (GAM-1.0)
-        plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
-        plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
-        plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
-        plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
-        plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
-        plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
-        plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
-                        xscale, "linear", None, None, 'r-')
+        try:
+            import calc as ca
+            RR = np.logspace(math.log10(2.0*M), math.log10(R.max()), 100)
+            rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
+            csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))
+            sE = np.log(PE * np.power(rhoE, -GAM)) / (GAM-1.0)
+            plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
+            plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
+            plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
+            plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
+            plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
+            plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
+            plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
+                            xscale, "linear", None, None, 'r-')
+        except ImportError:
+            pass
 
     title = "DISCO t = {0:.3g}".format(t)
 
