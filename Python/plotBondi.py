@@ -104,6 +104,7 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     up = igamrp*lr + igampp*lp + igampz*lz - bep*u0
     uz = igamrz*lr + igampz*lp + igamzz*lz - bez*u0
     uR = sinth*ur + costh*uz
+    BR = sinth*Br + costh*Bz
 
     rhoh = rho + GAM/(GAM-1.0)*P
     s = np.log(P * np.power(rho, -GAM)) / (GAM-1.0)
@@ -127,7 +128,7 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     du.plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",'k+')
     du.plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 'k+')
     du.plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 'k+')
-    du.plotAx(ax[2,0], R, Br, xscale, "linear", r"$R$", r"$B^R$", 'k+')
+    du.plotAx(ax[2,0], R, BR, xscale, "linear", r"$R$", r"$B^R$", 'k+')
     du.plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",'k+')
     du.plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 'k+')
     du.plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 'k+')

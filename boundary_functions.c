@@ -21,6 +21,52 @@ void set_cell_init(struct cell *c, double *r_jph, double *z_kph, int j, int k)
     double x[3] = {r, phi, 0.5*(z_kph[k]+z_kph[k-1])};
     initial(c->prim, x);
     subtract_omega(c->prim);
+    if(NUM_C > BZZ)
+    {
+        double prim[NUM_Q], dA;
+        if(NUM_FACES >= 1)
+        {
+            xm[1] = c->piph;
+            x[1] = c->piph;
+            dA = get_dA(xp, xm, 0);
+            initial(prim, x);
+            c->Phi[0] = prim[BPP]*dA;
+        }
+        if(NUM_FACES >= 3)
+        {
+            xm[1] = c->piph - c->dphi;
+            x[1] = phi;
+
+            xp[0] = r_jph[j-1];
+            x[0] = r_jph[j-1];
+            dA = get_dA(xp, xm, 1);
+            initial(prim, x);
+            c->Phi[1] = prim[BRR]*dA;
+            xp[0] = r_jph[j];
+            xm[0] = r_jph[j];
+            x[0] = r_jph[j];
+            dA = get_dA(xp, xm, 1);
+            initial(prim, x);
+            c->Phi[2] = prim[BRR]*dA;
+        }
+        if(NUM_FACES >= 5)
+        {
+            xm[0] = r_jph[j-1];
+            x[0] = r;
+
+            xp[2] = z_kph[j-1];
+            x[2] = z_kph[j-1];
+            dA = get_dA(xp, xm, 2);
+            initial(prim, x);
+            c->Phi[3] = prim[BZZ]*dA;
+            xp[2] = z_kph[j];
+            xm[2] = z_kph[j];
+            x[2] = z_kph[j];
+            dA = get_dA(xp, xm, 2);
+            initial(prim, x);
+            c->Phi[4] = prim[BZZ]*dA;
+        }
+    }
 }
 
 void set_cells_copy(struct cell *c, int Np, struct face *theFaces, 
