@@ -15,6 +15,8 @@ in.par*
 *.o
 *.swp
 .DS_Store
+*.pyc
+*.so
 
 # Viewer files
 Viewer/Movies/
