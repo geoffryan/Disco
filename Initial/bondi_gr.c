@@ -18,7 +18,7 @@ void initial( double * prim , double * x ){
     double R0 = 10.0;
     double rs = 10.0;
     double Mdot = 1.0;
-    double b0 = 0.0; //1.0e-4;
+    double b0 = 1.0e-4;
     
     double us2 = M / (2*rs);
     double as2 = us2 / (1 - 3*us2);
@@ -51,7 +51,7 @@ void initial( double * prim , double * x ){
     double P = PB;
     double lR = lRks;
 
-    if(R < 2.5)
+    if(R < rs)
     {
         rho = rhos;
         P = K * pow(rhos, gam);
