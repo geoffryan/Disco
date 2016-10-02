@@ -3,6 +3,11 @@ import math
 import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
+<<<<<<< HEAD
+=======
+import calc as ca
+import discoUtil as du
+>>>>>>> 8600ca28487d0ebbc2c830bd08216728a5e9cd01
 
 xscale = "log"
 yscale = "log"
@@ -26,35 +31,11 @@ def bondiExact(Mdot, Rs, M, R):
 
     return rho, u, P
 
-def loadCheckpoint(filename):
+def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
+    
+    print("Loading {0:s}...".format(file))
 
-    f = h5.File(filename, "r")
-
-    piph = f['Data']['Cells'][:,-1][...]
-    prim = f['Data']['Cells'][:,:-1][...]
-    index = f['Grid']['Index'][...]
-    idPhi0 = f['Grid']['Id_phi0'][...]
-    nphi = f['Grid']['Np'][...]
-    t = f['Grid']['T'][0]
-    riph = f['Grid']['r_jph'][...]
-    ziph = f['Grid']['z_kph'][...]
-
-    r = np.zeros(piph.shape)
-    z = np.zeros(piph.shape)
-    phi = np.zeros(piph.shape)
-    R = 0.5*(riph[1:] + riph[:-1])
-    Z = 0.5*(ziph[1:] + ziph[:-1])
-    for i in range(index.shape[0]):
-        for k in range(index.shape[1]):
-            ind0 = index[i,k]
-            ind1 = ind0 + nphi[i,k]
-            r[ind0:ind1] = R[i]
-            z[ind0:ind1] = Z[k]
-            piph_strip = piph[ind0:ind1]
-            pimh = np.roll(piph_strip, 1)
-            pimh[pimh>piph_strip] -= 2*np.pi
-            phi[ind0:ind1] = 0.5*(pimh+piph_strip)
-
+    t, r, phi, z, prim = du.loadCheckpoint(file)
     if RMAX > 0:
         R2 = r*r + z*z
         ind = (R2 < RMAX*RMAX) * (R2 > RMIN*RMIN)
@@ -62,14 +43,6 @@ def loadCheckpoint(filename):
         phi = phi[ind]
         z = z[ind]
         prim = prim[ind,:]
-
-    return t, r, phi, z, prim
-
-def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
-    
-    print("Loading {0:s}...".format(file))
-
-    t, r, phi, z, prim = loadCheckpoint(file)
 
     rho = prim[:,0]
     P = prim[:,1]
@@ -134,6 +107,7 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     up = igamrp*lr + igampp*lp + igampz*lz - bep*u0
     uz = igamrz*lr + igampz*lp + igamzz*lz - bez*u0
     uR = sinth*ur + costh*uz
+    BR = sinth*Br + costh*Bz
 
     rhoh = rho + GAM/(GAM-1.0)*P
     s = np.log(P * np.power(rho, -GAM)) / (GAM-1.0)
@@ -149,19 +123,19 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     nq = prim.shape[1]
 
     fig, ax = plt.subplots(4,4,figsize=(16,12))
-    plotAx(ax[0,0], R, rho, xscale, yscale, r"$R$", r"$\rho$", 'k+')
-    plotAx(ax[0,1], R, P, xscale, yscale, r"$R$", r"$P$", 'k+')
-    plotAx(ax[0,2], R, P/rho, xscale, yscale, r"$R$", r"$P/\rho$", 'k+')
-    plotAx(ax[0,3], R, cs, xscale, yscale, r"$R$", r"$c_s$", 'k+')
-    plotAx(ax[1,0], R, uR, xscale, "linear", r"$R$", r"$u^R$", 'k+')
-    plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",'k+')
-    plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 'k+')
-    plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 'k+')
-    plotAx(ax[2,0], R, Br, xscale, "linear", r"$R$", r"$B^R$", 'k+')
-    plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",'k+')
-    plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 'k+')
-    plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 'k+')
-    plotAx(ax[3,0], r, Mdot, xscale, "linear", r"$R$", r"$\dot{M} = R^2\rho u^R$", 'k+')
+    du.plotAx(ax[0,0], R, rho, xscale, yscale, r"$R$", r"$\rho$", 'k+')
+    du.plotAx(ax[0,1], R, P, xscale, yscale, r"$R$", r"$P$", 'k+')
+    du.plotAx(ax[0,2], R, P/rho, xscale, yscale, r"$R$", r"$P/\rho$", 'k+')
+    du.plotAx(ax[0,3], R, cs, xscale, yscale, r"$R$", r"$c_s$", 'k+')
+    du.plotAx(ax[1,0], R, uR, xscale, "linear", r"$R$", r"$u^R$", 'k+')
+    du.plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",'k+')
+    du.plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 'k+')
+    du.plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 'k+')
+    du.plotAx(ax[2,0], R, BR, xscale, "linear", r"$R$", r"$B^R$", 'k+')
+    du.plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",'k+')
+    du.plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 'k+')
+    du.plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 'k+')
+    du.plotAx(ax[3,0], r, Mdot, xscale, "linear", r"$R$", r"$\dot{M} = R^2\rho u^R$", 'k+')
 
     if plotExact:
         try:
@@ -170,13 +144,13 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
             rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
             csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))
             sE = np.log(PE * np.power(rhoE, -GAM)) / (GAM-1.0)
-            plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
-            plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
-            plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
-            plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
-            plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
-            plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
-            plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
+            du.plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
+            du.plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
+            du.plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
+            du.plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
+            du.plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
+            du.plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
+            du.plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
                             xscale, "linear", None, None, 'r-')
         except ImportError:
             pass
@@ -194,18 +168,6 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     fig.savefig(plotname)
 
     plt.close(fig)
-
-def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
-    ax.plot(x, y, *args, **kwargs)
-    if xlabel is not None:
-        ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
-    ax.set_xscale(xscale)
-    if (y>0).any():
-        ax.set_yscale(yscale)
-    else:
-        ax.set_yscale("linear")
 
 if __name__ == "__main__":
 

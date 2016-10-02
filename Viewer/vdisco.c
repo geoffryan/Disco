@@ -768,8 +768,8 @@ int main(int argc, char **argv)
    midz = Nz-1;
 
    int start[2]    = {0,0};
-   int loc_size[2] = {Nr,Nz};
-   int glo_size[2] = {Nr,Nz};
+   int loc_size[2] = {Nz,Nr};
+   int glo_size[2] = {Nz,Nr};
 
    int Np_All[Nr*Nz];
    int Tindex_All[Nr*Nz];
@@ -782,7 +782,7 @@ int main(int argc, char **argv)
    int i,j,k;
    for( j=0 ; j<Nr ; ++j ){
       k = midz;
-      int jk = j*Nz+k;
+      int jk = k*Nr+j;
       Np[j]     = Np_All[jk];
       Tindex[j] = Tindex_All[jk];
    }
@@ -847,9 +847,9 @@ int main(int argc, char **argv)
    printf("theZones built\n");
 
    loc_size[0] = 1;
-   for( j=0 ; j<Nr ; ++j ){
-      for( k=0 ; k<Nz ; ++k ){
-         int jk = j*Nz+k;
+   for( k=0 ; k<Nz ; ++k ){
+      for( j=0 ; j<Nr ; ++j ){
+         int jk = k*Nr+j;
          start[0] = Id_phi0[jk];
          readPatch( filename , group2 , (char *)"Cells" , rzZones[jk] , H5T_NATIVE_DOUBLE , 2 , start , loc_size , glo_size );
       }
