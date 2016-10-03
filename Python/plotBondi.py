@@ -15,6 +15,7 @@ M = 1.0
 
 def bondiExact(Mdot, Rs, M, R):
 
+    import calc as ca
     us2 = M / (2*Rs)
     as2 = us2 / (1-3*us2)
     us = -math.sqrt(us2)
@@ -135,7 +136,6 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
 
     if plotExact:
         try:
-            import calc as ca
             RR = np.logspace(math.log10(2.0*M), math.log10(R.max()), 100)
             rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
             csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))

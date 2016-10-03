@@ -2,7 +2,7 @@
 #include "paul.h"
 #include <string.h>
 
-#define R_HOR 1.5
+#define R_HOR 3.0
 
 void initial( double * , double * );
 double get_dV( double * , double * );
@@ -614,30 +614,30 @@ void boundary_fixed_horizon( struct domain *theDomain)
 
     int i,j,k;
 
-    if(dim_rank[0] == 0 )
+    for(k=0; k<Nz; k++)
     {
-        for(k=0; k<Nz; k++)
+        double zm = z_kph[k-1];
+        double zp = z_kph[k];
+        double zo = fabs(zp)>fabs(zm) ? zp : zm;
+
+        if(fabs(zo) > R_HOR)
+            continue;
+
+        for(j=0; j<Ng; j++)
         {
-            double zm = z_kph[k-1];
-            double zp = z_kph[k];
-            double zo = fabs(zp)>fabs(zm) ? zp : zm;
+            double ro = r_jph[j];
 
-            for(j=0; j<Ng; j++)
+            double R = sqrt(zo*zo + ro*ro);
+            
+            if(R < R_HOR)
             {
-                double ro = r_jph[j];
-
-                double R = sqrt(zo*zo + ro*ro);
-                
-                if(R < R_HOR)
+                int jk = j+Nr*k;
+                for(i=0; i<Np[jk]; i++)
                 {
-                    int jk = j+Nr*k;
-                    for(i=0; i<Np[jk]; i++)
-                    {
-                        set_cell_init(&(theCells[jk][i]), r_jph, z_kph, j, k);
-                        theCells[jk][i].real = 0;
-                    }
-                }  
-            }
+                    set_cell_init(&(theCells[jk][i]), r_jph, z_kph, j, k);
+                    theCells[jk][i].real = 0;
+                }
+            }  
         }
     }
 }
