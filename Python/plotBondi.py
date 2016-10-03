@@ -3,11 +3,7 @@ import math
 import h5py as h5
 import numpy as np
 import matplotlib.pyplot as plt
-<<<<<<< HEAD
-=======
-import calc as ca
 import discoUtil as du
->>>>>>> 8600ca28487d0ebbc2c830bd08216728a5e9cd01
 
 xscale = "log"
 yscale = "log"
