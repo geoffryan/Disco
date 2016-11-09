@@ -103,7 +103,7 @@ void getMaxMin(void){
       }
       if( dim3d ){
          for( k=0 ; k<Nz ; ++k ){
-            int jk = j*Nz+k;
+            int jk = k*Nr+j;
             val = getval( rzZones[jk], q );
             if( logscale ) val = log(val)/log(10.);
             if( maxval < val ) maxval = val;
@@ -451,7 +451,7 @@ void DrawGLScene(){
          if( dim3d ){
             int k;
             for( k=0 ; k<Nz ; ++k ){
-               int jk = j*Nz+k;
+               int jk = k*Nr+j;
                double rp = r_jph[j]/rescale;
                double rm = r_jph[j-1]/rescale;
                double zp = z_kph[k]/rescale;
@@ -764,8 +764,8 @@ int main(int argc, char **argv)
    readSimple( filename , group1 , (char *)"r_jph" , r_jph , H5T_NATIVE_DOUBLE );
    readSimple( filename , group1 , (char *)"z_kph" , z_kph , H5T_NATIVE_DOUBLE );
 
-   //midz = Nz/2;
-   midz = Nz-1;
+   midz = Nz/2;
+   //midz = Nz-1;
 
    int start[2]    = {0,0};
    int loc_size[2] = {Nz,Nr};
@@ -835,6 +835,8 @@ int main(int argc, char **argv)
    for( j=0 ; j<Nr ; ++j ){
       loc_size[0] = Np[j];
       start[0] = Tindex[j];
+
+      printf("j=%d Np[j]=%d Tindex[j]=%d\n", j, Np[j], Tindex[j]);
       double TrackData[Np[j]*(Nq+1)];
       readPatch( filename , group2 , (char *)"Cells" , TrackData , H5T_NATIVE_DOUBLE , 2 , start , loc_size , glo_size);
       for( i=0 ; i<Np[j] ; ++i ){
