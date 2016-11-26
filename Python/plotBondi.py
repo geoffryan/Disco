@@ -119,20 +119,39 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
     print("   Plotting...")
     nq = prim.shape[1]
 
+    col = (z-z.min()) / (z.max() - z.min())
+    col = np.log((r-r.min()+0.1) / (r.max() - r.min()))
+    cm = plt.cm.viridis
+
     fig, ax = plt.subplots(4,4,figsize=(16,12))
-    du.plotAx(ax[0,0], R, rho, xscale, yscale, r"$R$", r"$\rho$", 'k+')
-    du.plotAx(ax[0,1], R, P, xscale, yscale, r"$R$", r"$P$", 'k+')
-    du.plotAx(ax[0,2], R, P/rho, xscale, yscale, r"$R$", r"$P/\rho$", 'k+')
-    du.plotAx(ax[0,3], R, cs, xscale, yscale, r"$R$", r"$c_s$", 'k+')
-    du.plotAx(ax[1,0], R, uR, xscale, "linear", r"$R$", r"$u^R$", 'k+')
-    du.plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",'k+')
-    du.plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 'k+')
-    du.plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 'k+')
-    du.plotAx(ax[2,0], R, BR, xscale, "linear", r"$R$", r"$B^R$", 'k+')
-    du.plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",'k+')
-    du.plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 'k+')
-    du.plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 'k+')
-    du.plotAx(ax[3,0], r, Mdot, xscale, "linear", r"$R$", r"$\dot{M} = R^2\rho u^R$", 'k+')
+    du.plotAx(ax[0,0], R, rho, xscale, yscale, r"$R$", r"$\rho$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[0,1], R, P, xscale, yscale, r"$R$", r"$P$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[0,2], R, P/rho, xscale, yscale, r"$R$", r"$P/\rho$",
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[0,3], R, cs, xscale, yscale, r"$R$", r"$c_s$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[1,0], R, uR, xscale, "linear", r"$R$", r"$u^R$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[1,1], R, up, xscale, "linear", r"$R$", r"$u^\phi$",
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[1,2], R, s, xscale, yscale, r"$R$", r"$s$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[1,3], R, Ma, xscale, yscale, r"$R$", r"$\mathcal{M}$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[2,0], R, BR, xscale, "linear", r"$R$", r"$B^R$", 
+                marker='+', c=col, cmap=cm)
+    ax[2,0].set_ylim(BR.min(), BR.max())
+    du.plotAx(ax[2,1], R, Bp, xscale, "linear", r"$R$", r"$B^\phi$",
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[2,2], R, b2/P, xscale, yscale, r"$R$", r"$b^2/P$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[2,3], R, cA, xscale, yscale, r"$R$", r"$c_A$", 
+                marker='+', c=col, cmap=cm)
+    du.plotAx(ax[3,0], R, Mdot, xscale, "linear", r"$R$", 
+                r"$\dot{M} = R^2\rho u^R$", 
+                marker='+', c=col, cmap=cm)
 
     if plotExact:
         try:
@@ -140,14 +159,13 @@ def plotCheckpoint(file, plotExact=False, exactMdot=0.0, exactRs=0.0):
             rhoE, uE, PE = bondiExact(exactMdot, exactRs, M, RR)
             csE = np.sqrt(GAM * PE / (rhoE + GAM/(GAM-1)*PE))
             sE = np.log(PE * np.power(rhoE, -GAM)) / (GAM-1.0)
-            du.plotAx(ax[0,0], RR, rhoE, xscale, yscale, None, None, 'r-')
-            du.plotAx(ax[0,1], RR, PE, xscale, yscale, None, None, 'r-')
-            du.plotAx(ax[0,2], RR, PE/rhoE, xscale, yscale, None, None, 'r-')
-            du.plotAx(ax[0,3], RR, csE, xscale, yscale, None, None, 'r-')
-            du.plotAx(ax[1,0], RR, uE, xscale, "linear", None, None, 'r-')
-            du.plotAx(ax[1,2], RR, sE, xscale, yscale, None, None, 'r-')
-            du.plotAx(ax[3,0], RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 
-                            xscale, "linear", None, None, 'r-')
+            ax[0,0].plot(RR, rhoE, 'r-')
+            ax[0,1].plot(RR, PE, 'r-')
+            ax[0,2].plot(RR, PE/rhoE, 'r-')
+            ax[0,3].plot(RR, csE, 'r-')
+            ax[1,0].plot(RR, uE, 'r-')
+            ax[1,2].plot(RR, sE, 'r-')
+            ax[3,0].plot(RR, exactMdot/(4*np.pi)*np.ones(RR.shape), 'r-')
         except ImportError:
             pass
 

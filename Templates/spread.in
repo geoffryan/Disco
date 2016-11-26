@@ -9,6 +9,7 @@ BOUNDARY = fixed
 OUTPUT   = ascii
 RESTART  = h5in
 PLANETS  = sun
+HLLD     = hlld
 
 METRIC   = flat_rpz
 FRAME    = normal

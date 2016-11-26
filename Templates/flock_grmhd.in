@@ -3,14 +3,14 @@
 # This file contains user-specified build options
 
 # Build options
-INITIAL  = kepler
-HYDRO    = euler
+INITIAL  = flock_grmhd
+HYDRO    = grmhd2
 BOUNDARY = fixed
 OUTPUT   = h5out
 RESTART  = h5in
-PLANETS  = sun
-HLLD     = hlld
+PLANETS  = none
+HLLD     = hlld_grmhd
 
-METRIC   = flat_rpz
+METRIC   = schw_ks_rpz
 FRAME    = normal
 

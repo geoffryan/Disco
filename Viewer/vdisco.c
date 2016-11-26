@@ -836,7 +836,6 @@ int main(int argc, char **argv)
       loc_size[0] = Np[j];
       start[0] = Tindex[j];
 
-      printf("j=%d Np[j]=%d Tindex[j]=%d\n", j, Np[j], Tindex[j]);
       double TrackData[Np[j]*(Nq+1)];
       readPatch( filename , group2 , (char *)"Cells" , TrackData , H5T_NATIVE_DOUBLE , 2 , start , loc_size , glo_size);
       for( i=0 ; i<Np[j] ; ++i ){
