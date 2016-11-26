@@ -36,7 +36,7 @@ def loadCheckpoint(filename):
     return t, r, phi, z, prim
 
 def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
-    ax.plot(x, y, *args, **kwargs)
+    ax.scatter(x, y, *args, **kwargs)
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:

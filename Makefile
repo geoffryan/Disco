@@ -5,6 +5,8 @@ include $(MAKEFILE_OPT)
 MAKEFILE_H5  = $(PWD)/Makefile_dir.in
 include $(MAKEFILE_H5)
 
+TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex
+
 CC = mpicc
 FLAGS = -O3 -Wall -g
 
@@ -14,6 +16,14 @@ LIB = -L$(H55)/lib -lm -lhdf5
 OBJ = main.o readpar.o timestep.o onestep.o riemann.o mpisetup.o gridsetup.o domain.o misc.o geometry.o faces_alt.o exchange.o plm.o report.o profiler.o planet.o omega.o analysis.o bfields.o $(HLLD).o rotframe.o boundary_functions.o $(INITIAL).o $(OUTPUT).o $(HYDRO).o $(BOUNDARY).o $(RESTART).o $(PLANETS).o $(METRIC).o $(FRAME).o calc.o #snapshot.o
 
 default: disco
+
+.PHONY: $(TEMPLATES)
+
+$(TEMPLATES):
+	cp Templates/$@.par in.par
+	cp Templates/$@.in Makefile_opt.in
+	make clean
+	make
 
 %.o: %.c paul.h
 	$(CC) $(FLAGS) $(INC) -c $<
