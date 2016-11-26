@@ -2,7 +2,7 @@
 #include "paul.h"
 #include <string.h>
 
-#define R_HOR 3.0
+#define R_HOR 1.5
 
 void initial( double * , double * );
 double get_dV( double * , double * );
@@ -623,7 +623,7 @@ void boundary_fixed_horizon( struct domain *theDomain)
         if(fabs(zo) > R_HOR)
             continue;
 
-        for(j=0; j<Ng; j++)
+        for(j=0; j<Nr; j++)
         {
             double ro = r_jph[j];
 
