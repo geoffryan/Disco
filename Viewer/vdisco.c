@@ -764,8 +764,8 @@ int main(int argc, char **argv)
    readSimple( filename , group1 , (char *)"r_jph" , r_jph , H5T_NATIVE_DOUBLE );
    readSimple( filename , group1 , (char *)"z_kph" , z_kph , H5T_NATIVE_DOUBLE );
 
-   midz = Nz/2;
-   //midz = Nz-1;
+   //midz = Nz/2;
+   midz = Nz-1;
 
    int start[2]    = {0,0};
    int loc_size[2] = {Nz,Nr};

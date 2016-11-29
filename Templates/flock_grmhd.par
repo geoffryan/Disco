@@ -39,11 +39,11 @@ Mesh_Motion		    3	//0=Fixed, 1=By Cell, 2=Riemann Solver, 3=Avg
 Absorbing_BC		0
 Initial_Regrid		0
 Density_Floor		0.0 //1e-5
-Pressure_Floor	    0.0 //1e-5
+Pressure_Floor		0.0 //1e-5
 Constrained_Transport   1
 
 //Hydro Parameters
-Adiabatic_Index		1.333333333333333
+Adiabatic_Index		1.66666666667
 Isothermal		0
 Use_Viscosity		0
 Viscosity		0.0

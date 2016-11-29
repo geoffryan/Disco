@@ -11,6 +11,6 @@ RESTART  = h5in
 PLANETS  = none
 HLLD     = hlld_grmhd
 
-METRIC   = schw_ks_rpz
+METRIC   = schw_ks_eq_rpz
 FRAME    = normal
 
