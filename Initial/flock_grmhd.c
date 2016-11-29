@@ -23,7 +23,7 @@ void initial( double * prim , double * x ){
    double r2 = 3*r0;
 
 
-   double n = 2.0;
+   double n = 4.0;
 
    double rho = 1.0;
    double vp = sqrt(M / (r*r*r));
@@ -32,6 +32,13 @@ void initial( double * prim , double * x ){
 
    double vr = (1e-3*rnd1 - 5e-4) * sqrt(M/r0);
    double vz = (1e-3*rnd2 - 5e-4) * sqrt(M/r0);
+   double Bz = 0.05513/n * sqrt(M/r0);
+   if( r < r1 || r > r2 ) 
+   {
+       vr = 0.0;
+       vz = 0.0;
+       Bz = 0.0;
+   }
 
    double R2 = r*r+z*z;
    double R = sqrt(R2);
@@ -50,8 +57,6 @@ void initial( double * prim , double * x ){
    double lp = u0*gpp*vp; 
    double lz = u0*(g0z+grz*vr+gzz*vz); 
 
-   double Bz = 0.05513/n * sqrt(M/r0);
-   if( r < r1 || r > r2 ) Bz = 0.0;
 
    prim[RHO] = rho;
    prim[PPP] = Pp;
