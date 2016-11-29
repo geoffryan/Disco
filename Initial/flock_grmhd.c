@@ -33,13 +33,19 @@ void initial( double * prim , double * x ){
    double vr = (1e-3*rnd1 - 5e-4) * sqrt(M/r0);
    double vz = (1e-3*rnd2 - 5e-4) * sqrt(M/r0);
 
+   if (r < 0.5*(3*r1-r2) || r > 0.5*(3*r2-r1))
+   {
+       vr = 0.0;
+       vz = 0.0;
+   }
+
    double R2 = r*r+z*z;
    double R = sqrt(R2);
    double R3 = R*R2;
 
    double g00 = -1+2*M/R;
-   double g0r = -2*M*r/R2;
-   double g0z = -2*M*z/R2;
+   double g0r = 2*M*r/R2;
+   double g0z = 2*M*z/R2;
    double grr = 1+2*M*r*r/R3;
    double grz = 2*M*r*z/R3;
    double gzz = 1+2*M*z*z/R3;
