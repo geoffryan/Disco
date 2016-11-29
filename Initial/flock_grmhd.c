@@ -16,7 +16,7 @@ void initial( double * prim , double * x ){
 
    double r   = x[0];
    double phi = x[1];
-   double z   = x[2];
+   double z   = 0.0; //x[2];
 
    double r0 = 1.0e6;
    double r1 = 2*r0;
@@ -33,18 +33,14 @@ void initial( double * prim , double * x ){
    double vr = (1e-3*rnd1 - 5e-4) * sqrt(M/r0);
    double vz = (1e-3*rnd2 - 5e-4) * sqrt(M/r0);
    double Bz = 0.05513/n * sqrt(M/r0);
-   if( r < r1 || r > r2 ) 
-   {
-       vr = 0.0;
-       vz = 0.0;
-       Bz = 0.0;
-   }
 
    if (r < 0.5*(3*r1-r2) || r > 0.5*(3*r2-r1))
    {
        vr = 0.0;
        vz = 0.0;
    }
+   if (r < r1 || r > r2)
+       Bz = 0.0;
 
    double R2 = r*r+z*z;
    double R = sqrt(R2);
