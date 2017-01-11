@@ -1,0 +1,16 @@
+### Makefile.in for Disco ###
+
+# This file contains user-specified build options
+
+# Build options
+INITIAL  = sorathia_grmhd
+HYDRO    = grmhd2
+BOUNDARY = fixed
+OUTPUT   = h5out
+RESTART  = h5in
+PLANETS  = none
+HLLD     = hlld_grmhd
+
+METRIC   = schw_ks_eq_rpz
+FRAME    = geodesic
+
