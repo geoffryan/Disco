@@ -103,6 +103,16 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Drift_Rate"            , VAR_DOUB , &(theList->Drift_Rate)      );
          err += readvar( pfile , "Drift_Exp"             , VAR_DOUB , &(theList->Drift_Exp)       );
          err += readvar( pfile , "Constrained_Transport" , VAR_INT  , &(theList->CT)              );
+         err += readvar( pfile , "Metric_Par0" , VAR_INT  , &(theList->metricPar0));
+         err += readvar( pfile , "Metric_Par1" , VAR_DOUB  , &(theList->metricPar1));
+         err += readvar( pfile , "Metric_Par2" , VAR_DOUB  , &(theList->metricPar2));
+         err += readvar( pfile , "Metric_Par3" , VAR_DOUB  , &(theList->metricPar3));
+         err += readvar( pfile , "Metric_Par4" , VAR_DOUB  , &(theList->metricPar4));
+         err += readvar( pfile , "Init_Par0" , VAR_INT  , &(theList->initPar0));
+         err += readvar( pfile , "Init_Par1" , VAR_DOUB  , &(theList->initPar1));
+         err += readvar( pfile , "Init_Par2" , VAR_DOUB  , &(theList->initPar2));
+         err += readvar( pfile , "Init_Par3" , VAR_DOUB  , &(theList->initPar3));
+         err += readvar( pfile , "Init_Par4" , VAR_DOUB  , &(theList->initPar4));
       }
       MPI_Barrier(MPI_COMM_WORLD);
    }

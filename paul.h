@@ -55,6 +55,17 @@ struct param_list{
    int restart_flag;
    int CT;
 
+   int metricPar0;
+   double metricPar1;
+   double metricPar2;
+   double metricPar3;
+   double metricPar4;
+   
+   int initPar0;
+   double initPar1;
+   double initPar2;
+   double initPar3;
+   double initPar4;
 };
 
 struct diagnostic_avg{

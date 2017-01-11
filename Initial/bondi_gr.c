@@ -4,10 +4,12 @@
 
 static double M = 0.0;
 static double gam = 0.0;
+static int cyl = 0;
 
 void setICparams( struct domain * theDomain ){
    gam = theDomain->theParList.Adiabatic_Index;
-   M = 1.0;
+   M = theDomain->theParList.metricPar2;
+   cyl = 0;
 }
 
 void initial( double * prim , double * x ){
@@ -18,7 +20,7 @@ void initial( double * prim , double * x ){
     double R0 = 10.0;
     double rs = 10.0;
     double Mdot = 1.0;
-    double b0 = 1.0e-4;
+    double b0 = 0.0;
     
     double us2 = M / (2*rs);
     double as2 = us2 / (1 - 3*us2);
@@ -58,17 +60,35 @@ void initial( double * prim , double * x ){
         lR = -sqrt(2*M/R) / (1+sqrt(2*M/R));
     }
 
-    prim[RHO] = rho;
-    prim[PPP] = P;
-    prim[URR] = r/R * lR * chi;
-    prim[UPP] = 0.0;
-    prim[UZZ] = z/R * lR * chi;
-
-    if(NUM_C > 5)
+    if(cyl)
     {
-        prim[BRR] = r/(R*R*R)*b0 * chi;
-        prim[BPP] = 0.0;
-        prim[BZZ] = z/(R*R*R)*b0 * chi;
+        prim[RHO] = rho;
+        prim[PPP] = P;
+        prim[URR] = r/R * lR * chi;
+        prim[UPP] = 0.0;
+        prim[UZZ] = z/R * lR * chi;
+
+        if(NUM_C > 5)
+        {
+            prim[BRR] = r/(R*R*R)*b0 * chi;
+            prim[BPP] = 0.0;
+            prim[BZZ] = z/(R*R*R)*b0 * chi;
+        }
+    }
+    else
+    {
+        prim[RHO] = rho;
+        prim[PPP] = P;
+        prim[URR] = lR * chi;
+        prim[UPP] = 0.0;
+        prim[UZZ] = 0.0;
+
+        if(NUM_C > 5)
+        {
+            prim[BRR] = b0/(R*R) * chi;
+            prim[BPP] = 0.0;
+            prim[BZZ] = 0.0;
+        }
     }
 
     int q;

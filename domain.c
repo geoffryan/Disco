@@ -16,6 +16,7 @@ void setHlldParams( struct domain * );
 void setDiskParams( struct domain * );
 void setOmegaParams( struct domain * );
 void setMetricParams( struct domain * );
+void setFrameParams(struct domain * );
 
 int get_num_rzFaces( int , int , int );
 
@@ -90,6 +91,7 @@ void setupDomain( struct domain * theDomain ){
    setDiskParams( theDomain );
    setOmegaParams( theDomain );
    setMetricParams( theDomain );
+   setFrameParams( theDomain );
 
 }
 

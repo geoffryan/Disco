@@ -9,12 +9,12 @@
  */
 
 static double om = 0.0; 
-static double M = 1.0; 
+static double M = 0.0; 
 
 void setMetricParams(struct domain *theDomain)
 {
-   //om = theDomain->theParList.MetricPar1;
-   //M = theDomain->theParList.MetricPar2;
+   om = theDomain->theParList.metricPar1;
+   M = theDomain->theParList.metricPar2;
 }
 
 double metric_lapse(double x[3])

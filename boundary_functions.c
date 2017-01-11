@@ -531,7 +531,7 @@ void boundary_reflect_zbot( struct domain *theDomain)
     if(dim_rank[1] == 0)
     {
         for(k=Ng-1; k>=0; k--)
-            for(j=0; j<Nr; j--)
+            for(j=0; j<Nr; j++)
             {
                 int jk = j+Nr*k;
                 

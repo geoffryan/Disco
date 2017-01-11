@@ -4,12 +4,13 @@
 static double gam  = 0.0;
 static double nu   = 0.0;
 static double Mach = 0.0;
-static double M = 1.0;
+static double M = 0.0;
 
 void setICparams( struct domain * theDomain ){
    gam  = theDomain->theParList.Adiabatic_Index;
    nu   = theDomain->theParList.viscosity;
    Mach = theDomain->theParList.Disk_Mach;
+   M = theDomain->theParList.metricPar2;
 }
 
 void initial(double *prim, double *x)

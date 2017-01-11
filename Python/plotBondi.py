@@ -7,7 +7,7 @@ import discoUtil as du
 
 xscale = "log"
 yscale = "log"
-GAM = 1.33333333333333
+GAM = 1.66666666667
 RMIN = 0.0
 RMAX = np.inf
 M = 1.0

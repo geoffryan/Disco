@@ -22,6 +22,7 @@ def loadCheckpoint(filename):
     phi = np.zeros(piph.shape)
     R = 0.5*(riph[1:] + riph[:-1])
     Z = 0.5*(ziph[1:] + ziph[:-1])
+    primPhi0 = np.zeros((index.shape[0], index.shape[1], prim.shape[1]))
     for k in range(index.shape[0]):
         for j in range(index.shape[1]):
             ind0 = index[k,j]
@@ -32,11 +33,12 @@ def loadCheckpoint(filename):
             pimh = np.roll(piph_strip, 1)
             pimh[pimh>piph_strip] -= 2*np.pi
             phi[ind0:ind1] = 0.5*(pimh+piph_strip)
+            primPhi0[k,j,:] = prim[idPhi0[k,j],:]
 
-    return t, r, phi, z, prim
+    return t, r, phi, z, prim, (riph, ziph, primPhi0, piph)
 
 def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
-    ax.scatter(x, y, *args, **kwargs)
+    ax.plot(x, y, *args, **kwargs)
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:

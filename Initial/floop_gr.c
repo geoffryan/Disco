@@ -15,7 +15,7 @@ void initial( double * prim , double * x ){
    double Rl = 0.15;
    double B0 = 1.0e-4;
    double Om = 1.0;
-   double P0 = 1.0;
+   double P0 = 1.0e-2;
    double rho0 = 1.0;
 
    double x0 = 0.25;

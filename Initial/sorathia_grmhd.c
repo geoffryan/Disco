@@ -1,12 +1,32 @@
 //http://www.aanda.org/articles/aa/pdf/2010/08/aa12443-09.pdf
 #include "../paul.h"
 
-static double M = 0.0;
+static double Mach = 0.0;
 static double gam = 0.0;
+static double M = 0.0;
+static double r0 = 1.0;
+static double r1 = 2.0;
+static double r2 = 4.0;
+static double H0 = 0.2;
 
 void setICparams( struct domain * theDomain ){
+   Mach = theDomain->theParList.Disk_Mach;
    gam = theDomain->theParList.Adiabatic_Index;
    M = theDomain->theParList.metricPar2;
+}
+
+double I(double r){
+   double v=0.0;
+   if( r>1.2*r0 && r<3.8/4.0 * r2 ) v = 1.0;
+   return(v);
+}
+
+double floor( double x ){
+   return( (double)(int)x );
+}
+
+double Rs( double x ){
+   return( 1.2*r0 + (floor((x-r0)/H0)-.5)*H0 );
 }
 
 void initial( double * prim , double * x ){
@@ -16,31 +36,20 @@ void initial( double * prim , double * x ){
 
    double r   = x[0];
    double phi = x[1];
-   double z   = 0.0; //x[2];
+   double z   = x[2];
 
-   double r0 = 1.0e6;
-   double r1 = 2*r0;
-   double r2 = 3*r0;
+   double rho = 100.0;
+   double omega = sqrt(M/(r*r*r));
+   double cs2 = M/(2*r1*r1*r1) * H0*H0; // actually P / rho*h
+   double Pp = (gam-1.0) * cs2 / (gam*(1-cs2)-1) * rho
 
+   double dvp = (2e-2*rnd1 - 1e-2) * omega;
+   double vz = (2e-2*rnd2 - 1e-2) * sqrt(M/r0);
+   double vr = 0.0;
+   double vp = omega +dvp;
 
-   double n = 4.0;
-
-   double rho = 1.0;
-   double vp = sqrt(M / (r*r*r));
-   double cs = 0.1*vp*r;
-   double Pp = cs*cs*rho/gam;
-
-   double vr = (1e-3*rnd1 - 5e-4) * sqrt(M/r0);
-   double vz = (1e-3*rnd2 - 5e-4) * sqrt(M/r0);
-   double Bz = 0.05513/n * sqrt(M/r0);
-
-   if (r < 0.5*(3*r1-r2) || r > 0.5*(3*r2-r1))
-   {
-       vr = 0.0;
-       vz = 0.0;
-   }
-   if (r < r1 || r > r2)
-       Bz = 0.0;
+   double A0 = 0.37;
+   double Bz = A0*sin(2.*M_PI*(r-r0)/H0)/r*I(r)/sqrt(Rs(r));
 
    double R2 = r*r+z*z;
    double R = sqrt(R2);
@@ -58,7 +67,6 @@ void initial( double * prim , double * x ){
    double lr = u0*(g0r+grr*vr+grz*vz); 
    double lp = u0*gpp*vp; 
    double lz = u0*(g0z+grz*vr+gzz*vz); 
-
 
    prim[RHO] = rho;
    prim[PPP] = Pp;

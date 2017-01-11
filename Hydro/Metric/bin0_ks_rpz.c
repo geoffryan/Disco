@@ -17,7 +17,7 @@
  * Ireland et al. 2016 (gr-qc/1512.05650)
  */
 
-static double M = 1.0; 
+static double M = 0.0; 
 static double q = 1.0;
 static double a = 10.0;
 static double M1;
@@ -28,8 +28,7 @@ static double om;
 
 void setMetricParams(struct domain *theDomain)
 {
-   //om = theDomain->theParList.MetricPar1;
-   //M = theDomain->theParList.MetricPar2;
+   M = theDomain->theParList.metricPar2;
    
     M1 = M/(1+q);
     M2 = q*M/(1+q);

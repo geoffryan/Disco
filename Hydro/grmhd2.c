@@ -1697,6 +1697,225 @@ void cons2prim_solve_adiabatic_geoff2dv2(double *cons, double *prim, double *x)
         fclose(f);
     }
 }
+/*
+void cons2prim_solve_adiabatic_hamlinnewman(double *cons, double *prim, double *x)
+{
+    double prec = 1.0e-12;
+    double max_iter = 30;
+    double Nextra = 10;
+
+    double r = x[0];
+    double z = x[2];
+
+    double D = cons[DDD];
+    double S[3] = {cons[SRR], cons[LLL], cons[SZZ]};
+    double tau = cons[TAU];
+
+    double al, be[3], gam[9], igam[9], jac, sqrtgam;
+    double U[4];
+    al = metric_lapse(x);
+    metric_shift(x, be);
+    metric_gam(x, gam);
+    metric_igam(x, igam);
+    jac = metric_jacobian(x) / r;
+    sqrtgam = jac / al;
+    frame_U(x, U);
+    
+    double B[3] = {r*cons[BRR]/sqrtgam, cons[BPP]/sqrtgam, cons[BZZ]/sqrtgam};
+    //CRAZY
+    //double B[3] = {cons[BRR]/sqrtgam, cons[BPP]/sqrtgam, cons[BZZ]/sqrtgam};
+
+    double S2 = 0.0;
+    double US = 0.0;
+    double BS = 0.0;
+    double B2 = 0.0;
+
+    int i,j;
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            S2 += igam[3*i+j]*S[i]*S[j];
+
+    for(i=0; i<3; i++)
+        US += S[i]*(be[i]*U[0] + U[i+1]);
+
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            B2 += gam[3*i+j]*B[i]*B[j];
+    double Q = sqrtgam * B2 / D;
+
+    for(i=0; i<3; i++)
+        BS += B[i]*S[i];
+    double psi = sqrtgam * BS*BS / (D*D*D);
+
+    
+    double e = (tau/D + Us + 1.0) / (al*U[0]);
+    double n = (gamma_law-1.0)/gamma_law;
+
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX && fabs(z)<DEBUG_ZMAX)
+    {
+        printf("Not enough thermal energy (r=%.12lg, e2=%.12lg, s2=%.12lg)\n",
+                r, e*e, s2);
+
+        double cons0[NUM_Q];
+        prim2cons(prim, cons0, x, 1.0);
+
+        printf("prim: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                prim[RHO], prim[PPP], prim[URR], prim[UPP], prim[UZZ]);
+        printf("cons0: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                cons0[DDD], cons0[TAU], cons0[SRR], cons0[LLL], cons0[SZZ]);
+        printf("cons: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                cons[DDD], cons[TAU], cons[SRR], cons[LLL], cons[SZZ]);
+    }
+
+    //Newton-Raphson using the 2D scheme of Noble et al.
+    //TODO: Rearrange to optimize for cold flows.
+
+    //Initial guess: previous v2, eta
+    double u2 = 0.0;
+    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            u2 += igam[3*i+j]*l[i]*l[j];
+    double w = sqrt(1.0 + u2);
+    double v20 = u2 / (1.0+u2); // sqrt(1+u2)-1
+    double eta0 = w * (1.0 + gamma_law/(gamma_law-1.0)*prim[PPP]/prim[RHO]);
+
+    //Run Newton-Raphson
+    double v2, v21, eta, eta1;
+    v21 = v20;
+    eta1 = eta0;
+    
+    i = 0;
+    int clean = -1;
+    
+    if(DEBUG2 && r < DEBUG_RMAX)
+    {
+        printf("s2 = %.12lg, e = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                    s2,e,Q,psi);
+        printf("0: (%.12lg, %.12lg)\n", v21, eta1);
+    }
+
+    while(1)
+    {
+        v2 = v21;
+        eta = eta1;
+        
+        w = 1.0/sqrt(1.0-v2);
+        double fa = (eta+Q)*(eta+Q)*v2 - psi*(2*eta+Q)/(eta*eta) - s2;
+        double fb = eta - n*(1-v2)*(eta-w) + 0.5*Q*(1+v2) - 0.5*psi/(eta*eta)
+                    - e;
+        double dfadv2 = (eta+Q)*(eta+Q);
+        double dfadet = 2*(eta+Q)*(v2 + psi/(eta*eta*eta));
+        double dfbdv2 = n * (eta-0.5*w) + 0.5*Q;
+        double dfbdet = 1 - n*(1-v2) + psi/(eta*eta*eta);
+        double detj = dfadv2*dfbdet - dfbdv2*dfadet;
+
+
+        v21  = v2  - ( dfbdet*fa - dfadet*fb)/detj;
+        eta1 = eta - (-dfbdv2*fa + dfadv2*fb)/detj;
+
+        i++;
+
+        if(v21 > 1.0)
+            v21 = 0.5*(v2 + 1.0);
+        if(v21 < 0.0)
+            v21 = 0.5*v2;
+        if(eta1 < 1.0)
+            eta1 = 0.5*(eta+1.0);
+
+
+        double err = (eta1-eta)/eta;
+        //if(err != err)
+        //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
+
+        if(DEBUG2 && r < DEBUG_RMAX)
+        {
+            printf("%d: (%.12lg, %.12lg) (%.12lg, %.12lg) %.12lg\n", 
+                    i, v21, eta1, fa, fb, err);
+            printf("    %.12lg %.12lg %.12lg %.12lg\n", dfadv2, dfadet, 
+                        dfbdv2, dfbdet);
+        }
+
+        if(fabs(err) < prec && clean < 0)
+            clean = Nextra+1;
+        if(clean >= 0)
+            clean--;
+        if(clean == 0 || i == max_iter)
+            break;
+    }
+
+    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX
+                && fabs(z)<DEBUG_ZMAX)
+    {
+        printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
+                x[0], x[1], x[2], fabs(eta1-eta)/eta);
+        printf("    s2 = %.12lg, e = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                s2, e, Q, psi);
+        printf("    v20 = %.12lg, et0 = %.12lg, v21 = %.12lg, et1 = %.12lg\n",
+                v20, eta0, v21, eta1);
+    }
+
+    v2 = v21;
+    eta = eta1;
+
+    //Prim recovery
+    w = 1.0/sqrt(1-v2);
+    double u0 = w/al;
+    double h = eta/w;
+
+    double rho = D / (jac*u0);
+    if(rho < RHO_FLOOR)
+        rho = RHO_FLOOR;
+    double Pp = n * rho * (h-1.0);
+    if(Pp < PRE_FLOOR*rho)
+        Pp = PRE_FLOOR*rho;
+    
+    h = 1.0 + gamma_law/(gamma_law-1.0) * Pp/rho;
+    double Bd[3];
+    Bd[0] = gam[0]*B[0] + gam[1]*B[1] + gam[2]*B[2];
+    Bd[1] = gam[3]*B[0] + gam[4]*B[1] + gam[5]*B[2];
+    Bd[2] = gam[6]*B[0] + gam[7]*B[1] + gam[8]*B[2];
+
+    l[0] = (S[0] + sqrtgam*BS*Bd[0]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+    l[1] = (S[1] + sqrtgam*BS*Bd[1]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+    l[2] = (S[2] + sqrtgam*BS*Bd[2]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+
+    prim[RHO] = rho;
+    prim[URR] = l[0];
+    prim[UPP] = l[1];
+    prim[UZZ] = l[2];
+    prim[PPP] = Pp;
+
+    prim[BRR] = sqrtgam   * B[0];
+    prim[BPP] = sqrtgam*r * B[1];
+    prim[BZZ] = sqrtgam   * B[2];
+
+    int q;
+    for( q=NUM_C ; q<NUM_Q ; ++q )
+        prim[q] = cons[q]/cons[DDD];
+    
+    if(e*e < s2 && DEBUG && r < DEBUG_RMAX && fabs(z) < DEBUG_ZMAX)
+    {
+        double cons1[NUM_Q];
+        prim2cons(prim, cons1, x, 1.0);
+
+        printf("prim1: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                prim[RHO], prim[PPP], prim[URR], prim[UPP], prim[UZZ]);
+        printf("cons1: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                cons1[DDD], cons1[TAU], cons1[SRR], cons1[LLL], cons1[SZZ]);
+    }
+    
+    if(DEBUG3 && r < DEBUG_RMAX)
+    {
+        FILE *f = fopen("c2p.out", "a");
+        fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                    x[0], x[1], prim[URR], prim[UPP], cons[SRR], cons[LLL]);
+        fprintf(f, "    %.10lg %.10lg %.10lg\n",
+                        B2, prim[BRR], prim[BPP]);
+        fclose(f);
+    }
+}
+*/
 
 void cons2prim_finalize(double *prim, double *x)
 {
