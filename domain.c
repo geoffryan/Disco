@@ -136,18 +136,20 @@ void setupCells( struct domain * theDomain ){
             double dV = get_dV( xp , xm );
             double phi = c->piph-.5*c->dphi;
             double x[3] = { r , phi , .5*(z_kph[k]+z_kph[k-1])};
-            if( !restart_flag ) initial( c->prim , x );
-            subtract_omega( c->prim ); 
-            if( atmos ){
-               int p;
-               for( p=0 ; p<Npl ; ++p ){
-                  double gam = theDomain->theParList.Adiabatic_Index;
-                  adjust_gas( theDomain->thePlanets+p , x , c->prim , gam );
+            if( !restart_flag )
+            {
+               initial( c->prim , x );
+               subtract_omega( c->prim ); 
+               if( atmos ){
+                  int p;
+                  for( p=0 ; p<Npl ; ++p ){
+                     double gam = theDomain->theParList.Adiabatic_Index;
+                     adjust_gas( theDomain->thePlanets+p , x , c->prim , gam );
+                  }
                }
             }
             prim2cons( c->prim , c->cons , x , dV );
             cons2prim( c->cons , c->prim , x , dV );
-            c->real = 1;
          }    
       }    
    }
