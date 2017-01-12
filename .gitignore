@@ -25,4 +25,7 @@ Viewer/vdisco
 *.png
 *.eps
 *.ppm
-
+test*
+out*
+UnitTest
+disco.dSYM
