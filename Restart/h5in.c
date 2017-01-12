@@ -110,19 +110,22 @@ void restart( struct domain * theDomain ){
 
    if( rank==0 ) printf("Restarting from file...\n");
 
-   int NUM_R,NUM_Z;
+   int NUM_R,NUM_Z,NUM_Z_Tot;
    double tstart;
    //Read the time from "T" and get Nt and Np from 
    //the dimensions of "Index".  Broadcast to all ranks.
    if(rank==0){
       readSimple( filename , group1 ,"T", &tstart , H5T_NATIVE_DOUBLE );
       getH5dims( filename , group1 ,"Index", dims );
-      NUM_Z = dims[0];
+      NUM_Z_Tot = dims[0];
       NUM_R = dims[1];
    }
    MPI_Bcast( &NUM_R  , 1 , MPI_INT    , 0 , theDomain->theComm );
-   MPI_Bcast( &NUM_Z  , 1 , MPI_INT    , 0 , theDomain->theComm );
+   MPI_Bcast( &NUM_Z_Tot  , 1 , MPI_INT    , 0 , theDomain->theComm );
    MPI_Bcast( &tstart , 1 , MPI_DOUBLE , 0 , theDomain->theComm );
+   NUM_Z = NUM_Z_Tot;
+   if(Z_Periodic)
+       NUM_Z -= 2*Ng;
    theDomain->theParList.Num_R = NUM_R;
    theDomain->theParList.Num_Z = NUM_Z;
    theDomain->t = tstart;
@@ -141,6 +144,11 @@ void restart( struct domain * theDomain ){
    if( NUM_Z > 1 ){
       if( dim_rank[1] != 0 || Z_Periodic ) N0z -= Ng;
       if( dim_rank[1] != dim_size[1]-1 || Z_Periodic ) N1z += Ng;
+      if(Z_Periodic)
+      {
+          N0z += Ng;
+          N1z += Ng;
+      }
    }
    int Nz = N1z-N0z;
 
@@ -175,7 +183,7 @@ void restart( struct domain * theDomain ){
       //Read the Z values of the grid...
       start1[0]    = N0z;
       loc_size1[0] = Nz+1;
-      glo_size1[0] = NUM_Z+1;
+      glo_size1[0] = NUM_Z_Tot+1;
       double z_kph[Nz+1];
       readPatch( filename , group1 ,"z_kph", z_kph , H5T_NATIVE_DOUBLE , 1 , start1 , loc_size1 , glo_size1 );
       memcpy( theDomain->z_kph , z_kph , (Nz+1)*sizeof(double) );
@@ -187,7 +195,7 @@ void restart( struct domain * theDomain ){
       //The radial tracks of data which are coming up...
       int start2[2]   = {N0z,N0r};
       int loc_size2[2] = {Nz,Nr};
-      int glo_size2[2] = {NUM_Z,NUM_R};
+      int glo_size2[2] = {NUM_Z_Tot,NUM_R};
       int Np[Nr*Nz];
       int Index[Nr*Nz];
 
