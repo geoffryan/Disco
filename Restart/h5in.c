@@ -234,20 +234,45 @@ void restart( struct domain * theDomain ){
          }
       }
 
+      // Setup Planets
+      setPlanetParams( theDomain );
+      int Npl = theDomain->Npl;
+      int NpDat = 6;
+      theDomain->thePlanets = (struct planet *) malloc( Npl*sizeof(struct planet) );
+      initializePlanets( theDomain->thePlanets );
+
+      double PlanetData[Npl*NpDat];
+      start2[0] = 0;
+      start2[1] = 0;
+      loc_size2[0] = Npl;
+      loc_size2[1] = NpDat;
+      glo_size2[0] = Npl;
+      glo_size2[1] = NpDat;
+
+      readPatch( filename , group2 ,"Planets", PlanetData , H5T_NATIVE_DOUBLE,
+                    2, start2 , loc_size2 , glo_size2 );
+      int p;
+      for(p=0; p<Npl; ++p){
+         struct planet * pl = theDomain->thePlanets+p;
+         pl->M     = PlanetData[NpDat*p + 0];
+         pl->vr    = PlanetData[NpDat*p + 1];
+         pl->omega = PlanetData[NpDat*p + 2];
+         pl->r     = PlanetData[NpDat*p + 3];
+         pl->phi   = PlanetData[NpDat*p + 4];
+         pl->eps   = PlanetData[NpDat*p + 5];
+      }
    }
    MPI_Barrier(theDomain->theComm);
    }
    if( Nq != NUM_Q+NUM_FACES+1 ){ if(rank==0)printf("Ummm, I got an hdf5 read error. Check NUM_Q.\n"); exit(1); }
 
-   setPlanetParams( theDomain );
-   int Npl = theDomain->Npl;
-   theDomain->thePlanets = (struct planet *) malloc( Npl*sizeof(struct planet) );
-   initializePlanets( theDomain->thePlanets );
-
+   
+   // Setup Radial Diagnostics
    double num_tools = num_diagnostics();
    theDomain->num_tools = num_tools;
-   theDomain->theTools.t_avg = 0.0; 
-   theDomain->theTools.Qr = (double *) calloc( Nr*num_tools , sizeof(double) );
+   theDomain->theTools.t_avg = 0.0;
+   theDomain->theTools.Qr = (double *) calloc( Nr*num_tools , 
+                                            sizeof(double) );
 
    theDomain->N_ftracks_r = get_num_rzFaces( theDomain->Nr , theDomain->Nz , 1 ); 
    theDomain->N_ftracks_z = get_num_rzFaces( theDomain->Nr , theDomain->Nz , 2 ); 
