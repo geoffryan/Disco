@@ -80,20 +80,21 @@ void onestep( struct domain * theDomain , double RK , double dt , int first_step
    }
    clean_pi( theDomain );
    calc_dp( theDomain );
-/*
+   
    if( bflag && theDomain->theParList.CT ){
       B_faces_to_cells( theDomain , 1 );
    }
-   */
+   
 
    calc_prim( theDomain ); //ORDERING??? AFTER?
    
-   if( bflag && theDomain->theParList.CT ){
+   /*if( bflag && theDomain->theParList.CT ){
       B_faces_to_cells( theDomain , 0 );
    }
 
    //TODO: interaction with MHD? Hail Mary
    calc_cons(theDomain);
+   */
 
    boundary_trans( theDomain , 1 );
    exchangeData( theDomain , 0 );
