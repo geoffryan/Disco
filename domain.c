@@ -150,6 +150,7 @@ void setupCells( struct domain * theDomain ){
             }
             prim2cons( c->prim , c->cons , x , dV );
             cons2prim( c->cons , c->prim , x , dV );
+            c->real = 1;
          }    
       }    
    }
