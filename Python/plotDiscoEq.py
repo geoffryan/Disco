@@ -41,8 +41,8 @@ def plotCheckpoint(file, vars=None):
             phif[0] = piph[ind][-1]
             C = ax.pcolormesh(phif, rjph[i:i+2], prim[None,ind,q], 
                     cmap=plt.cm.inferno, vmin=vmin, vmax=vmax)
-        ax.plot(np.linspace(0, 2*np.pi, 100), 2*np.ones(100), color='grey', lw=6, ls='-')
-        ax.plot(np.linspace(0, 2*np.pi, 100), 6*np.ones(100), color='grey', lw=6, ls='--')
+        #ax.plot(np.linspace(0, 2*np.pi, 100), 2*np.ones(100), color='grey', lw=6, ls='-')
+        #ax.plot(np.linspace(0, 2*np.pi, 100), 6*np.ones(100), color='grey', lw=6, ls='--')
         ax.set_theta_direction(-1)
         ax.set_theta_offset(0.5*np.pi)
         ax.get_xaxis().set_visible(False)
@@ -95,4 +95,4 @@ if __name__ == "__main__":
 
     files = sys.argv[1:]
     for f in files:
-        plotCheckpoint(f, [5,6])
+        plotCheckpoint(f, [0,1,2,3,4])
