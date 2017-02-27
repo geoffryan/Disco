@@ -955,8 +955,7 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
         for(j=0; j<3; j++)
             u2 += igam[3*i+j]*l[i]*l[j];
     double w = sqrt(1.0 + u2);
-    double v20 = u2 / (1.0+u2); // sqrt(1+u2)-1
-    double eta0 = w * (1.0 + gamma_law/(gamma_law-1.0)*prim[PPP]/prim[RHO]);
+    double wmo0 = u2 / (w+1);
 
     //Run Newton-Raphson
     double wmo, wmo1;
@@ -1021,7 +1020,7 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
                 && fabs(z)<DEBUG_ZMAX)
     {
         printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
-                x[0], x[1], x[2], fabs(eta1-eta)/eta);
+                x[0], x[1], x[2], fabs(wmo1-wmo)/(1+wmo));
         printf("    s2 = %.12lg, Q = %.12lg, psi = %.12lg\n", s2, Q, psi);
         printf("    wmo0 = %.12lg, wmo1 = %.12lg\n", wmo0, wmo1);
     }
@@ -1071,10 +1070,6 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
                         B2, prim[BRR], prim[BPP]);
         fclose(f);
     }
-
-    int q;
-    for( q=NUM_C ; q<NUM_Q ; ++q )
-        prim[q] = cons[q]/cons[DDD];
 }
 
 void cons2prim_solve_adiabatic_noble2d(double *cons, double *prim, double *x)
