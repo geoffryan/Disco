@@ -897,7 +897,181 @@ void cons2prim_prep(double *cons, double *x)
 
 void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
 {
-    //TODO: complete this.
+    double prec = 1.0e-12;
+    double max_iter = 30;
+    double Nextra = 10;
+
+    double r = x[0];
+    double z = x[2];
+
+    double D = cons[DDD];
+    double S[3] = {cons[SRR], cons[LLL], cons[SZZ]};
+    double tau = cons[TAU];
+
+    double al, be[3], gam[9], igam[9], jac, sqrtgam;
+    double U[4];
+    al = metric_lapse(x);
+    metric_shift(x, be);
+    metric_gam(x, gam);
+    metric_igam(x, igam);
+    jac = metric_jacobian(x) / r;
+    sqrtgam = jac / al;
+    frame_U(x, U);
+    
+    double B[3] = {r*cons[BRR]/sqrtgam, cons[BPP]/sqrtgam, cons[BZZ]/sqrtgam};
+
+    double s2 = 0.0;
+    double Us = 0.0;
+    double BS = 0.0;
+    double B2 = 0.0;
+
+    double cs2N = get_cs2(r);
+    double P_o_rho = cs2N / gamma_law;
+    double h = 1.0 + gamma_law * P_o_rho / (gamma_law-1.0);
+
+    int i,j;
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            s2 += igam[3*i+j]*S[i]*S[j];
+    s2 /= (D*D*h*h);
+
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            B2 += gam[3*i+j]*B[i]*B[j];
+    double Q = sqrtgam * B2 / (D*h);
+
+    for(i=0; i<3; i++)
+        BS += B[i]*S[i];
+    double psi = sqrtgam * BS*BS / (D*D*D*h*h*h);
+
+    
+    //Newton-Raphson using the 2D scheme of Noble et al.
+    //TODO: Rearrange to optimize for cold flows.
+
+    //Initial guess: previous v2, eta
+    double u2 = 0.0;
+    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            u2 += igam[3*i+j]*l[i]*l[j];
+    double w = sqrt(1.0 + u2);
+    double v20 = u2 / (1.0+u2); // sqrt(1+u2)-1
+    double eta0 = w * (1.0 + gamma_law/(gamma_law-1.0)*prim[PPP]/prim[RHO]);
+
+    //Run Newton-Raphson
+    double wmo, wmo1;
+    wmo1 = wmo0;
+    
+    i = 0;
+    int clean = -1;
+    
+    if(DEBUG2 && r < DEBUG_RMAX)
+    {
+        printf("H = %.12lg, s2 = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                    D*h, s2, Q, psi);
+        printf("0: (%.12lg)\n", wmo1);
+    }
+
+    double c4 = 1.0;
+    double c3 = 4 + 2*Q;
+    double c2 = 5 - s2 + 6*Q + Q*Q;
+    double c1 = 2 - 2*s2 + 4*Q + 2*Q*Q - 2*psi;
+    double c0 = -s2 - 2*psi - Q*psi;
+
+    double wmoMIN = 0.0;
+    double wmoMAX = 1000.0;
+
+    while(1)
+    {
+        wmo = wmo1;
+        
+        double f =  (((c4*wmo + c3)*wmo + c2)*wmo + c1)*wmo + c0;
+        double df = ((4*c4*wmo + 3*c3)*wmo + 2*c2)*wmo + c1;
+
+        wmo1  = wmo  - f/df;
+
+        i++;
+
+        if(wmo1 > wmoMAX || wmo1 < wmoMIN)
+            wmo1 = 0.5*(wmoMAX+wmoMIN);
+        else if (f > 0)
+            wmoMAX = wmo;
+        else if (f < 0)
+            wmoMIN = wmo;
+
+        double err = (wmo1-wmo) / (1.0+wmo);
+        //if(err != err)
+        //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
+
+        if(DEBUG2 && r < DEBUG_RMAX)
+        {
+            printf("%d: (%.12lg) (%.12lg, %.12lg) %.12lg\n", 
+                    i, wmo1, f, df, err);
+        }
+
+        if(fabs(err) < prec && clean < 0)
+            clean = Nextra+1;
+        if(clean >= 0)
+            clean--;
+        if(clean == 0 || i == max_iter)
+            break;
+    }
+
+    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX
+                && fabs(z)<DEBUG_ZMAX)
+    {
+        printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
+                x[0], x[1], x[2], fabs(eta1-eta)/eta);
+        printf("    s2 = %.12lg, Q = %.12lg, psi = %.12lg\n", s2, Q, psi);
+        printf("    wmo0 = %.12lg, wmo1 = %.12lg\n", wmo0, wmo1);
+    }
+
+    wmo = wmo1;
+
+    //Prim recovery
+    w = wmo+1.0;
+    double u0 = w/al;
+
+    double rho = D / (jac*u0);
+    if(rho < RHO_FLOOR)
+        rho = RHO_FLOOR;
+    double Pp = P_o_rho * rho;
+    if(Pp < PRE_FLOOR*rho)
+        Pp = PRE_FLOOR*rho;
+    
+    double Bd[3];
+    Bd[0] = gam[0]*B[0] + gam[1]*B[1] + gam[2]*B[2];
+    Bd[1] = gam[3]*B[0] + gam[4]*B[1] + gam[5]*B[2];
+    Bd[2] = gam[6]*B[0] + gam[7]*B[1] + gam[8]*B[2];
+
+    l[0] = (S[0] + sqrtgam*BS*Bd[0]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+    l[1] = (S[1] + sqrtgam*BS*Bd[1]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+    l[2] = (S[2] + sqrtgam*BS*Bd[2]/(D*h*w)) / (D*h + sqrtgam*B2/w);
+
+    prim[RHO] = rho;
+    prim[URR] = l[0];
+    prim[UPP] = l[1];
+    prim[UZZ] = l[2];
+    prim[PPP] = Pp;
+
+    prim[BRR] = sqrtgam   * B[0];
+    prim[BPP] = sqrtgam*r * B[1];
+    prim[BZZ] = sqrtgam   * B[2];
+
+    int q;
+    for( q=NUM_C ; q<NUM_Q ; ++q )
+        prim[q] = cons[q]/cons[DDD];
+    
+    if(DEBUG3 && r < DEBUG_RMAX)
+    {
+        FILE *f = fopen("c2p.out", "a");
+        fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                    x[0], x[1], prim[URR], prim[UPP], cons[SRR], cons[LLL]);
+        fprintf(f, "    %.10lg %.10lg %.10lg\n",
+                        B2, prim[BRR], prim[BPP]);
+        fclose(f);
+    }
+
     int q;
     for( q=NUM_C ; q<NUM_Q ; ++q )
         prim[q] = cons[q]/cons[DDD];
