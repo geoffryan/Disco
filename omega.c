@@ -2,9 +2,19 @@
 #include "paul.h"
 
 static double Mach = 0.0;
+static double r0 = 0.0;
+static double r1 = 0.0;
+static double r2 = 0.0;
+static double H0 = 0.0;
+static double M = 0.0;
 
 void setDiskParams( struct domain * theDomain ){
    Mach = theDomain->theParList.Disk_Mach;
+   r0 = theDomain->theParList.initPar1; // Inner edge
+   r1 = theDomain->theParList.initPar2; // Fiducial radius
+   r2 = theDomain->theParList.initPar3; // Outer Edge
+   H0 = theDomain->theParList.initPar4; // Scale Height
+   M = theDomain->theParList.metricPar2;
 }
 
 double mesh_om( double r ){
@@ -30,7 +40,11 @@ double get_om1( double r ){
 double get_cs2( double r ){
 //   double nu = .5;
 //   return( .5/Mach/Mach/pow(r,2.*nu) );
-   return( 1./Mach/Mach );
+   if(Mach > 0.0)
+      return 1./(Mach*Mach);
+   else
+      return M*H0*H0 / (2*r1*r1*r1);
+//   return( 1./Mach/Mach );
 //   return(1.0);
 }
 

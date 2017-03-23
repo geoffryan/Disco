@@ -47,7 +47,12 @@ void initial( double * prim , double * x ){
    double rho0 = 100.0;
    double rho = rho0;
    double omega = sqrt(M/(r*r*r));
-   double cs2 = M/(2*r1*r1*r1) * H0*H0; // actually P / rho*h
+   double cs2;  // actually P/rho*h
+   if(Mach > 0.0)
+      cs2 = 1.0/(Mach*Mach);
+   else
+      cs2 = M/(2*r1*r1*r1) * H0*H0;
+
    double Pp = (gam-1.0) * cs2 / (gam*(1-cs2)-1) * rho;
 
    double dvp = (2e-2*rnd1 - 1e-2) * omega;
