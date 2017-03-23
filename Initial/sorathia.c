@@ -44,7 +44,7 @@ void initial( double * prim , double * x ){
    double R1 = 2*R0;
    double Bz = A0*sin(2.*M_PI*(r-R0)/H0)/r*I(r)/sqrt(Rs(r));
 
-   double Pp
+   double Pp;
    if (Mach > 0.0)
       Pp = rho/Mach/Mach;
    else
