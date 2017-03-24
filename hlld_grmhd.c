@@ -15,6 +15,7 @@
 enum{DD,EN,MX,MY,MZ,BX,BY,BZ};
 
 static double gamma_law = 0.0;
+static int isothermal = 0;
 
 //From GRMHD
 void prim2cons( double * , double * , double * , double );
@@ -27,6 +28,7 @@ int calc_msfast(double *velL, double *velR, double rhoh, double cs2, double w,
 //Global Functions
 void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U, 
                     double *x, double *n);
+double get_cs2( double );
 
 //Local Functions
 void calc_tetrads(double al, double *be, double *gam, double *igam, 
@@ -68,10 +70,13 @@ void calc_Ua(double p, double s, double Bx, double *R, double *va, double *Ba,
 void calc_Uc(double p, double sa, double Bx, double *va, double *vc, 
                 double *Bc, double *Ua, double *Uc);
 double cons2prim_hlld(double *U, double *p);
+double cons2prim_noble2d_hlld(double *U, double *p);
+double cons2prim_isothermal_hlld(double *U, double *p);
 
 void setHlldParams( struct domain * theDomain )
 {
    gamma_law = theDomain->theParList.Adiabatic_Index;
+   isothermal = theDomain->theParList.isothermal_flag;
 }
 
 void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U, 
@@ -1219,6 +1224,134 @@ void calc_Uc(double p, double sa, double Bx, double *va, double *vc,
 }
 
 double cons2prim_hlld(double *U, double *p)
+{
+    //if(isothermal)
+    //    return cons2prim_isothermal_hlld(U, p);
+        
+    return cons2prim_noble2d_hlld(U, p);
+}
+
+double cons2prim_isothermal_hlld(double *U, double *p)
+{
+    double prec = 1.0e-10;
+    double max_iter = 30;
+    double Nextra = 2;
+
+    double D = U[DD];
+    double S[3] = {U[MX], U[MY], U[MZ]};
+    double tau = U[EN];
+    double B[3] = {U[BX], U[BY], U[BZ]};
+
+    //TODO: pass proper argument to get_cs2()
+    double cs2N = get_cs2(1.0);
+    double P_o_rhoh = cs2N / gamma_law;
+    double h = 1.0 / (1.0 - gamma_law * P_o_rhoh / (gamma_law-1.0));
+
+    double s2 = (S[0]*S[0] + S[1]*S[1] + S[2]*S[2]) / (D*D*h*h);
+    double B2 = B[0]*B[0] + B[1]*B[1] + B[2]*B[2];
+    double BS = B[0]*S[0] + B[1]*S[1] + B[2]*S[2];
+
+    double Q = B2 / (D*h);
+    double psi = BS*BS / (D*D*D*h*h*h);
+
+    //Initial guess: previous wmo
+    double u[3] = {p[URR], p[UPP], p[UZZ]};
+    double u2 = u[0]*u[0] + u[1]*u[1] + u[2]*u[2];
+    double w = sqrt(1.0 + u2);
+    double wmo0 = u2 / (w+1);
+
+    //Run Newton-Raphson
+    double wmo, wmo1;
+    wmo1 = wmo0;
+    
+    int i = 0;
+    int clean = -1;
+    
+    if(DEBUG4)
+    {
+        printf("H = %.12lg, s2 = %.12lg, Q = %.12lg, psi = %.12lg\n",
+                    D*h, s2, Q, psi);
+        printf("0: (%.12lg)\n", wmo1);
+    }
+
+    double c4 = 1.0;
+    double c3 = 4 + 2*Q;
+    double c2 = 5 - s2 + 6*Q + Q*Q;
+    double c1 = 2 - 2*s2 + 4*Q + 2*Q*Q - 2*psi;
+    double c0 = -s2 - 2*psi - Q*psi;
+
+    double wmoMIN = 0.0;
+    double wmoMAX = 1000.0;
+
+    while(1)
+    {
+        wmo = wmo1;
+        
+        double f =  (((c4*wmo + c3)*wmo + c2)*wmo + c1)*wmo + c0;
+        double df = ((4*c4*wmo + 3*c3)*wmo + 2*c2)*wmo + c1;
+
+        wmo1  = wmo  - f/df;
+
+        i++;
+
+        if(wmo1 > wmoMAX || wmo1 < wmoMIN)
+            wmo1 = 0.5*(wmoMAX+wmoMIN);
+        else if (f > 0)
+            wmoMAX = wmo;
+        else if (f < 0)
+            wmoMIN = wmo;
+
+        double err = (wmo1-wmo) / (1.0+wmo);
+        //if(err != err)
+        //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
+
+        if(DEBUG4)
+        {
+            printf("%d: (%.12lg) (%.12lg, %.12lg) %.12lg\n", 
+                    i, wmo1, f, df, err);
+        }
+
+        if(fabs(err) < prec && clean < 0)
+            clean = Nextra+1;
+        if(clean >= 0)
+            clean--;
+        if(clean == 0 || i == max_iter)
+            break;
+    }
+
+    if(i == max_iter && (DEBUG3 || DEBUG4) )
+    {
+        printf("ERROR: NR failed to converge in HLLD.  err = %.12lg\n", 
+                fabs(wmo1-wmo)/(1+wmo));
+        printf("    s2 = %.12lg, Q = %.12lg, psi = %.12lg\n", s2, Q, psi);
+        printf("    wmo0 = %.12lg, wmo1 = %.12lg\n", wmo0, wmo1);
+    }
+
+    wmo = wmo1;
+
+    //Prim recovery
+    w = wmo+1.0;
+
+    double rho = D / w;
+    double Pp = P_o_rhoh * rho * h;
+    
+    u[0] = (S[0] + BS*B[0]/(D*h*w)) / (D*h + B2/w);
+    u[1] = (S[1] + BS*B[1]/(D*h*w)) / (D*h + B2/w);
+    u[2] = (S[2] + BS*B[2]/(D*h*w)) / (D*h + B2/w);
+
+    double uB = u[0]*B[0] + u[1]*B[1] + u[2]*B[2];
+    double b2 = (B2 + uB*uB) / (w*w);
+    
+    p[RHO] = rho;
+    p[URR] = u[0];
+    p[UPP] = u[1];
+    p[UZZ] = u[2];
+    p[PPP] = Pp;
+
+    return Pp + 0.5*b2;
+}
+
+double cons2prim_noble2d_hlld(double *U, double *p)
 {
     double prec = 1.0e-10;
     double max_iter = 30;

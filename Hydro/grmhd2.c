@@ -950,7 +950,7 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
     //Newton-Raphson using the 2D scheme of Noble et al.
     //TODO: Rearrange to optimize for cold flows.
 
-    //Initial guess: previous v2, eta
+    //Initial guess: previous wmo
     double u2 = 0.0;
     double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
     for(i=0; i<3; i++)
