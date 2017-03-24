@@ -607,7 +607,130 @@ void cons2prim_prep(double *cons, double *x)
 void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
 {
     //TODO: complete this.
+    double prec = 1.0e-15;
+    double max_iter = 100;
+
+    double r = x[0];
+
+    double D = cons[DDD];
+    double S[3] = {cons[SRR], cons[LLL], cons[SZZ]};
+    double tau = cons[TAU];
+
+    double lapse;
+    double shift[3];
+    double igam[9];
+    double jac;
+    double U[4];
+    lapse = metric_lapse(x);
+    metric_shift(x, shift);
+    metric_igam(x, igam);
+    jac = metric_jacobian(x) / r;
+    frame_U(x, U);
+
+    double s2 = 0.0;
+
+    int i,j;
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            s2 += igam[3*i+j]*S[i]*S[j];
+    s2 /= D*D;
+
+    double cs2 = get_cs2(r);
+    double n = (gamma_law-1.0)/gamma_law;
+
+    if(e*e < s2 && DEBUG)
+    {
+        printf("Not enough thermal energy (r=%.12lg, e2=%.12lg, s2=%.12lg)\n",
+                r, e*e, s2);
+
+        double cons0[NUM_Q];
+        prim2cons(prim, cons0, x, 1.0);
+
+        printf("prim: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                prim[RHO], prim[PPP], prim[URR], prim[UPP], prim[UZZ]);
+        printf("cons0: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                cons0[DDD], cons0[TAU], cons0[SRR], cons0[LLL], cons0[SZZ]);
+        printf("cons: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
+                cons[DDD], cons[TAU], cons[SRR], cons[LLL], cons[SZZ]);
+    }
+
+    double wmo;
+    if(s2 == 0.0)
+        wmo = 0.0;
+    else
+    {
+        //Newton-Raphson on a quartic polynomial to solve for w-1
+        //TODO: Minimize truncation error.
+        double c[5];
+        c[0] = -s2*(n-1)*(n-1);
+        c[1] = 2*((e-n)*(e-n)+2*(n-1)*s2);
+        c[2] = (5*e-n)*(e-n)-2*(3-n)*s2;
+        c[3] = 4*(e*e-s2) - 2*n*e;
+        c[4] = e*e-s2;
+
+        //Bounds
+        double wmomin = 0.0; //u=0
+        double wmomax = sqrt(1.0+s2)-1.0; //eps = P = 0
+
+        //Initial guess: previous w
+        double u2 = 0.0;
+        double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+        for(i=0; i<3; i++)
+            for(j=0; j<3; j++)
+                u2 += igam[3*i+j]*l[i]*l[j];
+        double wmo0 = u2 / (1.0+sqrt(1.0+u2)); // sqrt(1+u2)-1
+
+        //Run Newton-Raphson
+        double wmo1 = wmo0;
+        i = 0;
+        do
+        {
+            //TODO: Telescoping evaluation.
+            wmo = wmo1;
+            double f = c[0] + c[1]*wmo + c[2]*wmo*wmo + c[3]*wmo*wmo*wmo
+                        + c[4]*wmo*wmo*wmo*wmo;
+            double df = c[1] + 2*c[2]*wmo + 3*c[3]*wmo*wmo
+                        + 4*c[4]*wmo*wmo*wmo;
+            wmo1 = wmo - f/df;
+
+            if(f > 0.0 && wmo<wmomax)
+                wmomax = wmo;
+            else if(f < 0.0 && wmo > wmomin)
+                wmomin = wmo;
+            if(wmo1 < wmomin || wmo1 > wmomax)
+                wmo1 = 0.5*(wmomin+wmomax);
+            i++;
+        }
+        while(fabs((wmo-wmo1)/(wmo+1.0)) > prec && i < max_iter);
+
+        if(i == max_iter)
+            printf("ERROR: NR failed to converge: err = %.12lg\n", fabs((wmo-wmo1)/(wmo+1.0)));
+    }
+
+    //Prim recovery
+    double w = wmo + 1.0;
+    double u0 = w/lapse;
+    double hmo = w*(e-w) / (w*w-n);
+
+    double rho = D / (jac*u0);
+    if(rho < RHO_FLOOR)
+        rho = RHO_FLOOR;
+    double Pp = n * rho * hmo;
+    if(Pp < PRE_FLOOR*rho)
+        Pp = PRE_FLOOR*rho;
+    
+    double h = 1.0 + gamma_law/(gamma_law-1.0) * Pp/rho;
+    double l[3] = {S[0]/(D*h), S[1]/(D*h), S[2]/(D*h)};
+
+    prim[RHO] = rho;
+    prim[URR] = l[0];
+    prim[UPP] = l[1];
+    prim[UZZ] = l[2];
+    prim[PPP] = Pp;
     int q;
+
+    
+
     for( q=NUM_C ; q<NUM_Q ; ++q )
         prim[q] = cons[q]/cons[DDD];
 }

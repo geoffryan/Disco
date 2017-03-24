@@ -926,8 +926,10 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
     double B2 = 0.0;
 
     double cs2N = get_cs2(r);
-    double P_o_rho = cs2N / gamma_law;
-    double h = 1.0 + gamma_law * P_o_rho / (gamma_law-1.0);
+    //double P_o_rho = cs2N / gamma_law;
+    //double h = 1.0 + gamma_law * P_o_rho / (gamma_law-1.0);
+    double P_o_rhoh = cs2N / gamma_law;
+    double h = 1.0 / (1.0 - gamma_law * P_o_rhoh / (gamma_law-1.0));
 
     int i,j;
     for(i=0; i<3; i++)
@@ -948,7 +950,7 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
     //Newton-Raphson using the 2D scheme of Noble et al.
     //TODO: Rearrange to optimize for cold flows.
 
-    //Initial guess: previous v2, eta
+    //Initial guess: previous wmo
     double u2 = 0.0;
     double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
     for(i=0; i<3; i++)
@@ -1034,7 +1036,8 @@ void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
     double rho = D / (jac*u0);
     if(rho < RHO_FLOOR)
         rho = RHO_FLOOR;
-    double Pp = P_o_rho * rho;
+    //double Pp = P_o_rho * rho;
+    double Pp = P_o_rhoh * rho * h;
     if(Pp < PRE_FLOOR*rho)
         Pp = PRE_FLOOR*rho;
     

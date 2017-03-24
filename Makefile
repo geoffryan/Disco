@@ -7,7 +7,7 @@ include $(MAKEFILE_H5)
 
 TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex sorathia_grmhd
 
-CC = mpicc
+#CC = mpicc
 FLAGS = -O3 -Wall -g
 
 INC = -I$(H55)/include
@@ -26,40 +26,40 @@ $(TEMPLATES):
 	make
 
 %.o: %.c paul.h
-	$(CC) $(FLAGS) $(INC) -c $<
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c $<
 
 calc.o: Calc/*.c Calc/calc.h
-	$(CC) $(FLAGS) $(INC) -c Calc/*.c -o calc.o
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Calc/*.c -o calc.o
 
 $(TIMESTEP).o: Timestep/$(TIMESTEP).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Timestep/$(TIMESTEP).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Timestep/$(TIMESTEP).c
 
 $(INITIAL).o : Initial/$(INITIAL).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Initial/$(INITIAL).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Initial/$(INITIAL).c
 
 $(HYDRO).o : Hydro/$(HYDRO).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Hydro/$(HYDRO).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Hydro/$(HYDRO).c
 
 $(PLANETS).o : Planets/$(PLANETS).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Planets/$(PLANETS).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Planets/$(PLANETS).c
 
 $(BOUNDARY).o : Boundary/$(BOUNDARY).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Boundary/$(BOUNDARY).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Boundary/$(BOUNDARY).c
 
 $(OUTPUT).o : Output/$(OUTPUT).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Output/$(OUTPUT).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Output/$(OUTPUT).c
 
 $(RESTART).o : Restart/$(RESTART).c paul.h
-	$(CC) $(FLAGS) $(INC) -c Restart/$(RESTART).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Restart/$(RESTART).c
 
 $(METRIC).o : Hydro/Metric/$(METRIC).c paul.h Hydro/metric.h
-	$(CC) $(FLAGS) $(INC) -c Hydro/Metric/$(METRIC).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Hydro/Metric/$(METRIC).c
 
 $(FRAME).o : Hydro/Frame/$(FRAME).c paul.h Hydro/frame.h
-	$(CC) $(FLAGS) $(INC) -c Hydro/Frame/$(FRAME).c
+	$(CC) $(FLAGS) $(LOCAL_CFLAGS) $(INC) -c Hydro/Frame/$(FRAME).c
 
 disco: $(OBJ) paul.h
-	$(CC) $(FLAGS) $(LIB) -o disco $(OBJ)
+	$(CC) $(FLAGS) $(LOCAL_LDFLAGS) -o disco $(OBJ) $(LIB)
 
 clean:
 	rm -f *.o disco
