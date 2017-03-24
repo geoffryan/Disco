@@ -6,6 +6,7 @@
 
 void initial( double * , double * );
 double get_dV( double * , double * );
+double get_dA( double *, double *, int);
 void cons2prim( double * , double * , double * , double );
 void prim2cons( double * , double * , double * , double );
 double get_moment_arm(double *, double *);
@@ -197,7 +198,6 @@ void boundary_fixed_rinn( struct domain *theDomain)
     double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
     int i,j,k;
 
@@ -246,14 +246,12 @@ void boundary_fixed_zbot( struct domain *theDomain)
     struct cell **theCells = theDomain->theCells;
 
     int Nr = theDomain->Nr;
-    int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
     double *r_jph = theDomain->r_jph;
     double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
     int i,j,k;
 
@@ -306,13 +304,10 @@ void boundary_zerograd_rinn( struct domain *theDomain, int diode)
     int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
-    double *r_jph = theDomain->r_jph;
-    double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
-    int i,j,k,n,q;
+    int j,k;
 
     if(dim_rank[0] == 0 )
     {
@@ -339,13 +334,11 @@ void boundary_zerograd_rout( struct domain *theDomain, int diode)
     int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
-    double *r_jph = theDomain->r_jph;
-    double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
     int *dim_size = theDomain->dim_size;
 
-    int i,j,k,n,q;
+    int j,k;
 
     if(dim_rank[0] == dim_size[0]-1)
     {
@@ -369,16 +362,12 @@ void boundary_zerograd_zbot( struct domain *theDomain, int diode)
     int *fIndex = theDomain->fIndex_z;
 
     int Nr = theDomain->Nr;
-    int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
-    double *r_jph = theDomain->r_jph;
-    double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
-    int i,j,k,n,q;
+    int j,k;
 
     if(dim_rank[1] == 0)
     {
@@ -404,13 +393,11 @@ void boundary_zerograd_ztop( struct domain *theDomain, int diode)
     int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
-    double *r_jph = theDomain->r_jph;
-    double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
     int *dim_size = theDomain->dim_size;
 
-    int i,j,k,n,q;
+    int j,k;
 
     if(dim_rank[1] == dim_size[1]-1)
     {
@@ -438,7 +425,6 @@ void boundary_reflect_rinn( struct domain *theDomain)
     double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
     int i,j,k;
 
@@ -517,14 +503,12 @@ void boundary_reflect_zbot( struct domain *theDomain)
     struct cell **theCells = theDomain->theCells;
 
     int Nr = theDomain->Nr;
-    int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
     int Ng = theDomain->Ng;
     double *r_jph = theDomain->r_jph;
     double *z_kph = theDomain->z_kph;
 
     int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
     int i,j,k;
 
@@ -605,12 +589,8 @@ void boundary_fixed_horizon( struct domain *theDomain)
     int Nr = theDomain->Nr;
     int Nz = theDomain->Nz;
     int *Np = theDomain->Np;
-    int Ng = theDomain->Ng;
     double *r_jph = theDomain->r_jph;
     double *z_kph = theDomain->z_kph;
-
-    int *dim_rank = theDomain->dim_rank;
-    int *dim_size = theDomain->dim_size;
 
     int i,j,k;
 

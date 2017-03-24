@@ -196,7 +196,8 @@ void output( struct domain * theDomain , char * filestart ){
    int jSize = jmax-jmin;
    int kSize = kmax-kmin;
    int nrk;
-   int j0,k0;
+   int j0 = -1;
+   int k0 = -1;
    int jSum = 0;
    for( nrk=0 ; nrk < dim_size[0] ; ++nrk ){
       if( nrk == dim_rank[0] ){
