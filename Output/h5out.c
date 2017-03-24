@@ -180,9 +180,8 @@ void output( struct domain * theDomain , char * filestart ){
       fdims2[0] = Nz_Tot;
       fdims2[1] = NtoolsZ;
       createDataset(filename,"Data","Vertical_Diagnostics",2,fdims2,H5T_NATIVE_DOUBLE);
-      fdims2[0] = Nr_Tot*Nz_Tot;
-      fdims2[1] = NtoolsRZ;
-      createDataset(filename,"Data","Poloidal_Diagnostics",2,fdims2,H5T_NATIVE_DOUBLE);
+      hsize_t fdims3[3] = {Nz_Tot, Nr_Tot, NtoolsRZ};
+      createDataset(filename,"Data","Poloidal_Diagnostics",3,fdims3,H5T_NATIVE_DOUBLE);
    }
    MPI_Barrier( theDomain->theComm );
    if( rank==0 ){
@@ -235,13 +234,16 @@ void output( struct domain * theDomain , char * filestart ){
 
    double *Qrz = theDomain->theTools.Qrz;
 
+
    int index = 0;
+   int q;
    for( k=kmin ; k<kmax ; ++k ){
       for( j=jmin ; j<jmax ; ++j ){
          int jk = (k-kmin)*jSize + (j-jmin);
          Index[jk] = index;
          Size[jk] = Np[j+Nr*k];
-         diagRZwrite[jk] = Qrz[j+Nr*k];
+         for(q=0; q<NtoolsRZ; q++)
+            diagRZwrite[NtoolsRZ*jk+q] = Qrz[NtoolsRZ*(j+Nr*k)+q];
  
          double phi0 = M_PI;
          int Id = 0;
@@ -287,7 +289,10 @@ void output( struct domain * theDomain , char * filestart ){
          writePatch( filename , "Grid" , "Index"   , Index   , H5T_NATIVE_INT , 2 , start2 , loc_size2 , glo_size2 );
          writePatch( filename , "Grid" , "Np"      , Size    , H5T_NATIVE_INT , 2 , start2 , loc_size2 , glo_size2 );
          writePatch( filename , "Grid" , "Id_phi0" , Id_phi0 , H5T_NATIVE_INT , 2 , start2 , loc_size2 , glo_size2 );
-         writePatch( filename , "Data" , "Poloidal_Diagnostics" , diagRZwrite , H5T_NATIVE_DOUBLE , 2 , start2 , loc_size2 , glo_size2 );
+         int start3[3] = {k0, j0, 0};
+         int loc_size3[3] = {kSize, jSize, NtoolsRZ};
+         int glo_size3[3] = {Nz_Tot, Nr_Tot, NtoolsRZ};
+         writePatch( filename , "Data" , "Poloidal_Diagnostics" , diagRZwrite , H5T_NATIVE_DOUBLE , 3 , start3 , loc_size3 , glo_size3 );
 
          //Write 1D Radial Data
          if( dim_rank[1] == 0 ){

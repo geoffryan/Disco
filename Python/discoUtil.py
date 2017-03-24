@@ -37,6 +37,33 @@ def loadCheckpoint(filename):
 
     return t, r, phi, z, prim, (riph, ziph, primPhi0, piph)
 
+def loadDiagRZ(filename):
+
+    f = h5.File(filename, "r")
+
+    t = f['Grid']['T'][0]
+    rjph = f['Grid']['r_jph'][...]
+    zkph = f['Grid']['z_kph'][...]
+    diag = f['Data']['Poloidal_Diagnostics'][...]
+
+    f.close()
+
+    Nr = rjph.shape[0]-1
+    Nz = zkph.shape[0]-1
+    Nq = diag.shape[-1]
+    #diag = np.resize(diag, (Nz,Nr,Nq))
+
+    R = 0.5*(rjph[1:]+rjph[:-1])
+    Z = 0.5*(zkph[1:]+zkph[:-1])
+
+    r = np.empty((Nz,Nr))
+    z = np.empty((Nz,Nr))
+
+    r[:,:] = R[None,:]
+    z[:,:] = Z[:,None]
+
+    return t, r, z, diag, rjph, zkph
+
 def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
     ax.plot(x, y, *args, **kwargs)
     if xlabel is not None:
