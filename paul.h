@@ -70,6 +70,8 @@ struct param_list{
 
 struct diagnostic_avg{
    double * Qr;
+   double * Qz;
+   double * Qrz;
    double t_avg;
 };
 
@@ -99,7 +101,9 @@ struct domain{
    MPI_Comm theComm;
 
    struct param_list theParList;
-   int num_tools;
+   int num_tools_r;
+   int num_tools_z;
+   int num_tools_rz;
    struct diagnostic_avg theTools;
 
    double t;

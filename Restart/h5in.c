@@ -79,7 +79,9 @@ void freeDomain( struct domain * );
 
 void setPlanetParams( struct domain * );
 void initializePlanets( struct planet * );
-int num_diagnostics( void );
+int num_diagnostics_r( void );
+int num_diagnostics_z( void );
+int num_diagnostics_rz( void );
 int get_num_rzFaces( int , int , int );
 
 void restart( struct domain * theDomain ){
@@ -268,10 +270,18 @@ void restart( struct domain * theDomain ){
 
    
    // Setup Radial Diagnostics
-   double num_tools = num_diagnostics();
-   theDomain->num_tools = num_tools;
+   int num_tools_r = num_diagnostics_r();
+   int num_tools_z = num_diagnostics_z();
+   int num_tools_rz = num_diagnostics_rz();
+   theDomain->num_tools_r = num_tools_r;
+   theDomain->num_tools_z = num_tools_z;
+   theDomain->num_tools_rz = num_tools_rz;
    theDomain->theTools.t_avg = 0.0;
-   theDomain->theTools.Qr = (double *) calloc( Nr*num_tools , 
+   theDomain->theTools.Qr = (double *) calloc( Nr*num_tools_r , 
+                                            sizeof(double) );
+   theDomain->theTools.Qz = (double *) calloc( Nz*num_tools_z , 
+                                            sizeof(double) );
+   theDomain->theTools.Qrz = (double *) calloc( Nr*Nz*num_tools_rz , 
                                             sizeof(double) );
 
    theDomain->N_ftracks_r = get_num_rzFaces( theDomain->Nr , theDomain->Nz , 1 ); 
