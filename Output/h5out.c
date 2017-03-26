@@ -84,6 +84,130 @@ int Cell2Doub( struct cell * c , double * Q , int mode ){
    }
 }
 
+void dumpVal(char *filename, char *group, char *dset, void *val, 
+                hid_t type)
+{
+    hsize_t fdims1[1];
+    fdims1[0] = 1;
+    createDataset(filename, group, dset, 1, fdims1, type);
+    writeSimple(filename, group, dset, val, type);
+}
+
+void writePars(struct domain *theDomain, char filename[])
+{
+    struct param_list *pars = &(theDomain->theParList);
+
+    createGroup(filename, "Pars");
+
+    dumpVal(filename, "Pars", "Num_R",  &(pars->Num_R),  
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Num_Z",  &(pars->Num_Z),  
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "aspect", &(pars->aspect), 
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Num_Reports",  &(pars->NumRepts),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Num_Snapshots",  &(pars->NumSnaps),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Num_Checkpoints",  &(pars->NumChecks),
+                    H5T_NATIVE_INT);
+
+    dumpVal(filename, "Pars", "T_Start", &(pars->t_min),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "T_End", &(pars->t_max),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "R_Min", &(pars->rmin),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "R_Max", &(pars->rmax),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Z_Min", &(pars->zmin),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Z_Max", &(pars->zmax),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Phi_Max", &(pars->phimax),
+                    H5T_NATIVE_DOUBLE);
+    
+    dumpVal(filename, "Pars", "Use_Logtime", &(pars->Out_LogTime),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Log_Zoning", &(pars->LogZoning),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Z_Periodic", &(pars->Z_Periodic),
+                    H5T_NATIVE_INT);
+
+    dumpVal(filename, "Pars", "Log_Radius", &(pars->LogRadius),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Max_Aspect_Short", &(pars->MaxShort),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Max_Aspect_Long", &(pars->MaxLong),
+                    H5T_NATIVE_DOUBLE);
+
+    dumpVal(filename, "Pars", "CFL", &(pars->CFL),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "PLM", &(pars->PLM),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Adiabatic_Index", &(pars->Adiabatic_Index),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Isothermal", &(pars->isothermal_flag),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Density_Floor", &(pars->Density_Floor),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Pressure_Floor", &(pars->Pressure_Floor),
+                    H5T_NATIVE_DOUBLE);
+
+    dumpVal(filename, "Pars", "Mesh_Motion", &(pars->Mesh_Motion),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Riemann_Solver", &(pars->Riemann_Solver),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Initial_Regrid", &(pars->Initial_Regrid),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Restart", &(pars->restart_flag),
+                    H5T_NATIVE_INT);
+    
+    dumpVal(filename, "Pars", "Use_Viscosity", &(pars->visc_flag),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Viscosity", &(pars->viscosity),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Use_As_Alpha", &(pars->alpha_flag),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Include_Atmos", &(pars->include_atmos),
+                    H5T_NATIVE_INT);
+    
+    dumpVal(filename, "Pars", "Mach_Number", &(pars->Disk_Mach),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Mass_Ratio", &(pars->Mass_Ratio),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Eccentricity", &(pars->Eccentricity),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Drift_Rate", &(pars->Drift_Rate),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Drift_Exp", &(pars->Drift_Exp),
+                    H5T_NATIVE_DOUBLE);
+    
+    dumpVal(filename, "Pars", "Constrained_Transport", &(pars->CT),
+                    H5T_NATIVE_INT);
+    
+    dumpVal(filename, "Pars", "Metric_Par0", &(pars->metricPar0),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Metric_Par1", &(pars->metricPar1),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Metric_Par2", &(pars->metricPar2),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Metric_Par3", &(pars->metricPar3),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Metric_Par4", &(pars->metricPar4),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Init_Par0", &(pars->initPar0),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Init_Par1", &(pars->initPar1),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Init_Par2", &(pars->initPar2),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Init_Par3", &(pars->initPar3),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Init_Par4", &(pars->initPar4),
+                    H5T_NATIVE_DOUBLE);
+}
+
 double get_dV( double * , double * );
 void prim2cons( double * , double * , double *, double );
 void cons2prim( double * , double * , double *, double );
@@ -186,6 +310,7 @@ void output( struct domain * theDomain , char * filestart ){
    MPI_Barrier( theDomain->theComm );
    if( rank==0 ){
       writeSimple(filename,"Grid","T",&(theDomain->t),H5T_NATIVE_DOUBLE);
+      writePars(theDomain, filename);
       double PlanetData[Npl*NpDat];
       int p;
       for( p=0 ; p<Npl ; ++p ){

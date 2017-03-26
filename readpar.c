@@ -90,7 +90,6 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Riemann_Solver"        , VAR_INT  , &(theList->Riemann_Solver)  );
          err += readvar( pfile , "Initial_Regrid"        , VAR_INT  , &(theList->Initial_Regrid)  );
          err += readvar( pfile , "Restart"               , VAR_INT  , &(theList->restart_flag)    );
-         err += readvar( pfile , "Use_Logtime"           , VAR_INT  , &(theList->Out_LogTime)     );
          err += readvar( pfile , "Use_Viscosity"         , VAR_INT  , &(theList->visc_flag)       );
          err += readvar( pfile , "Viscosity"             , VAR_DOUB , &(theList->viscosity)       );
          err += readvar( pfile , "Use_As_Alpha"          , VAR_INT  , &(theList->alpha_flag)      );
