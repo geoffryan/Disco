@@ -43,7 +43,7 @@ Pressure_Floor		0.0 //1.0e-4 //1e-5
 Constrained_Transport   1
 
 //Hydro Parameters
-Adiabatic_Index		1.0000001
+Adiabatic_Index		1.000001
 Isothermal		0
 Use_Viscosity		0
 Viscosity		0.0

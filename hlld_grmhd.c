@@ -7,7 +7,7 @@
 #define ACC 1e-12
 #define MAX_ITER 10
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG2 0
 #define DEBUG3 0
 #define DEBUG4 0
