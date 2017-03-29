@@ -52,7 +52,7 @@ def plotCheckpoint(file):
         labels = labelsMHD
     elif nq <= len(labelsGRMHD):
         labels = labelsGRMHD
-    else
+    else:
         labels = None
 
 
