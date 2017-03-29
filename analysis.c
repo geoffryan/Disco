@@ -18,8 +18,8 @@ int num_diagnostics_z(void){
 }
 int num_diagnostics_rz(void){
    //return(0);
-   //return(18);
-   return(48);
+   return(18);
+   //return(48);
 }
 
 void planetaryForce( struct planet * , double , double , double , double * , double * , double * , int );
@@ -52,7 +52,7 @@ void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
 */
 
 /* MHD */
-/*
+
 void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
                         double * Qrz, struct domain * theDomain )
 {
@@ -96,10 +96,10 @@ void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
    Qrz[17] = sqrt(B2/rho);
 
 }
-*/
+
 
 /* GRMHD */
-
+/*
 void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
                         double * Qrz, struct domain * theDomain )
 {
@@ -247,6 +247,8 @@ void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
     Qrz[46] = sqrt(b2 / rhohs);
     Qrz[47] = tau;
 }
+*/
+
 void zero_diagnostics( struct domain * theDomain ){
 
    int Nr = theDomain->Nr;
