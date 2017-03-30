@@ -16,6 +16,8 @@ enum{DD,EN,MX,MY,MZ,BX,BY,BZ};
 
 static double gamma_law = 0.0;
 static int isothermal = 0;
+static double RMIN = 0.0;
+static double RMAX = 0.0;
 
 //From GRMHD
 void prim2cons( double * , double * , double * , double );
@@ -77,6 +79,12 @@ void setHlldParams( struct domain * theDomain )
 {
    gamma_law = theDomain->theParList.Adiabatic_Index;
    isothermal = theDomain->theParList.isothermal_flag;
+   double rmin = theDomain->theParList.rmin;
+   double rmax = theDomain->theParList.rmax;
+   int numr = theDomain->theParList.Num_R;
+   double dr = (rmax-rmin) / numr;
+   RMIN = rmin + 10*dr;
+   RMAX = rmax - 10*dr;
 }
 
 void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U, 
@@ -225,10 +233,11 @@ void get_Ustar_HLLD(double w, double *pL, double *pR, double *F, double *U,
     int zone = solve_HLLD_SR(sLo, sRo, Bx, ULo, FLo, URo, FRo, wo, 
                                 primLo, primRo, Uo, Fo);
 
-    if(zone < 0)
+    if(zone < 0 && x[0]>RMIN && x[0]<RMAX)
     {
         printf("HLLD Failure. Using HLL.  x=(%.6lg %.6lg %.6lg) n=(%.0lf %.0lf %.0lf)\n", 
                 x[0], x[1], x[2], n[0], n[1], n[2]);
+        printf("%.3lg %.3lg\n", RMIN, RMAX);
     }
 
     //Convert momenta and energy to coordinate frame
@@ -491,6 +500,7 @@ int solve_HLLD_SR(double sL, double sR, double Bx, double *UL, double *FL,
         Ps = Ps0;
     else
         Ps = Pshll;
+
     if(DEBUG2 || DEBUG4)
         printf("    Ps0 = %.12lg (PsHLL=%.16lg PsB0=%.16lg)\n", Ps,Pshll,Ps0); 
 
@@ -1123,7 +1133,7 @@ int calc_Ps(double *RL, double *RR, double Bx, double sL, double sR,
         if(enthL < 0.0 || enthR < 0.0)
             p1 = 0.8*p;
 
-        if(DEBUG4 || dp != dp)
+        if(DEBUG4)
         {
             printf("      %d: p=%.12lg dp=%.12lg f=%.12lg df=%.12lg\n",
                     i, p, dp, f, df);
