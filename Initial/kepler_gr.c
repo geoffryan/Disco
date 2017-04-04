@@ -88,4 +88,13 @@ void initial(double *prim, double *x)
         prim[NUM_C] = r>10.0 ? 1.0 : 0.0;
     if(NUM_N > 1)
         prim[NUM_C+1] = r*cos(phi)>0 ? 1.0 : 0.0;
+    if(NUM_N > 2)
+    {
+        double x0 = 10.0;
+        double y0 = 0.0;
+        double R0 = 1.0;
+        double dx = r*cos(phi) - x0;
+        double dy = r*sin(phi) - y0;
+        prim[NUM_C+2] = sqrt(dx*dx+dy*dy)<R0 ? 1.0 : 0.0;
+    }
 }

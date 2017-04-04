@@ -100,7 +100,7 @@ void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
 
 
 /* GRMHD */
-
+/*
 void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
                         double * Qrz, struct domain * theDomain )
 {
@@ -248,7 +248,7 @@ void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
     Qrz[46] = sqrt(b2 / rhohs);
     Qrz[47] = tau;
 }
-
+*/
 
 void zero_diagnostics( struct domain * theDomain ){
 

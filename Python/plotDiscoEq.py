@@ -5,11 +5,11 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import discoUtil as du
 
-def plotCheckpoint(file, vars=None):
+def plotCheckpoint(file, vars=None, noGhost=False):
     
     print("Loading {0:s}...".format(file))
 
-    t, r, phi, z, prim, dat = du.loadCheckpoint(file)
+    t, r, phi, z, prim, dat = du.loadCheckpoint(file, noGhost=True)
     rjph = dat[0]
     zkph = dat[1]
     primPhi0 = dat[2]
@@ -32,9 +32,12 @@ def plotCheckpoint(file, vars=None):
         #ax.pcolormesh(rjph, thkph, primPhi0[:,:,q], cmap=plt.cm.inferno)
         vmin = prim[:,q].min()
         vmax = prim[:,q].max()
-        if q in [5,6]:
+        if q in [5,6,7]:
             vmin, vmax = 0.0, 1.0
-        for i, R in enumerate(np.unique(r)):
+        Rs = np.unique(r)
+        if noGhost:
+            Rs = Rs[:-2]
+        for i, R in enumerate(Rs):
             ind = r==R
             phif = np.empty(len(piph[ind])+1)
             phif[1:] = piph[ind]
@@ -63,15 +66,15 @@ def plotCheckpoint(file, vars=None):
         if q in [0,1]:
             fig, ax = plt.subplots(1,1, subplot_kw={'projection':'polar'})
             #ax.pcolormesh(rjph, thkph, primPhi0[:,:,q], cmap=plt.cm.inferno)
-            for i, R in enumerate(np.unique(r)):
+            for i, R in enumerate(Rs):
                 ind = r==R
                 phif = np.empty(len(piph[ind])+1)
                 phif[1:] = piph[ind]
                 phif[0] = piph[ind][-1]
                 C = ax.pcolormesh(phif, rjph[i:i+2], prim[None,ind,q], 
                         cmap=plt.cm.inferno, vmin=vmin, vmax=vmax)
-            ax.set_theta_direction(-1)
-            ax.set_theta_offset(0.5*np.pi)
+            #ax.set_theta_direction(-1)
+            #ax.set_theta_offset(0.5*np.pi)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
             #ax.tick_params(axis='x', which='both', bottom='off', top='off', 
@@ -95,4 +98,4 @@ if __name__ == "__main__":
 
     files = sys.argv[1:]
     for f in files:
-        plotCheckpoint(f, [0,1,2,3,4])
+        plotCheckpoint(f, [0,5,6,7], noGhost=False)

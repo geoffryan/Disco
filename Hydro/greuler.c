@@ -4,6 +4,10 @@
 #include "frame.h"
 
 #define DEBUG 0
+#define DEBUG2 0
+#define DEBUG3 0
+#define DEBUG_RMAX 10.0
+#define DEBUG_ZMAX 10.0
 #define ND 2
 
 //Global Functions
@@ -606,133 +610,153 @@ void cons2prim_prep(double *cons, double *x)
 
 void cons2prim_solve_isothermal(double *cons, double *prim, double *x)
 {
-    //TODO: complete this.
-    double prec = 1.0e-15;
-    double max_iter = 100;
+    double prec = 1.0e-12;
+    double max_iter = 30;
+    double Nextra = 10;
 
     double r = x[0];
+    double z = x[2];
 
     double D = cons[DDD];
     double S[3] = {cons[SRR], cons[LLL], cons[SZZ]};
     double tau = cons[TAU];
 
-    double lapse;
-    double shift[3];
-    double igam[9];
-    double jac;
+    double al, be[3], gam[9], igam[9], jac, sqrtgam;
     double U[4];
-    lapse = metric_lapse(x);
-    metric_shift(x, shift);
+    al = metric_lapse(x);
+    metric_shift(x, be);
+    metric_gam(x, gam);
     metric_igam(x, igam);
     jac = metric_jacobian(x) / r;
+    sqrtgam = jac / al;
     frame_U(x, U);
-
+    
     double s2 = 0.0;
+    double Us = 0.0;
+
+    double cs2N = get_cs2(r);
+    //double P_o_rho = cs2N / gamma_law;
+    //double h = 1.0 + gamma_law * P_o_rho / (gamma_law-1.0);
+    double P_o_rhoh = cs2N / gamma_law;
+    double h = 1.0 / (1.0 - gamma_law * P_o_rhoh / (gamma_law-1.0));
 
     int i,j;
     for(i=0; i<3; i++)
         for(j=0; j<3; j++)
             s2 += igam[3*i+j]*S[i]*S[j];
-    s2 /= D*D;
+    s2 /= (D*D*h*h);
 
-    double cs2 = get_cs2(r);
-    double n = (gamma_law-1.0)/gamma_law;
+    //Initial guess: previous wmo
+    double u2 = 0.0;
+    double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
+    for(i=0; i<3; i++)
+        for(j=0; j<3; j++)
+            u2 += igam[3*i+j]*l[i]*l[j];
+    double w = sqrt(1.0 + u2);
+    double wmo0 = u2 / (w+1);
 
-    if(e*e < s2 && DEBUG)
+    //Run Newton-Raphson
+    double wmo, wmo1;
+    wmo1 = wmo0;
+    
+    i = 0;
+    int clean = -1;
+    
+    if(DEBUG2 && r < DEBUG_RMAX)
     {
-        printf("Not enough thermal energy (r=%.12lg, e2=%.12lg, s2=%.12lg)\n",
-                r, e*e, s2);
-
-        double cons0[NUM_Q];
-        prim2cons(prim, cons0, x, 1.0);
-
-        printf("prim: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
-                prim[RHO], prim[PPP], prim[URR], prim[UPP], prim[UZZ]);
-        printf("cons0: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
-                cons0[DDD], cons0[TAU], cons0[SRR], cons0[LLL], cons0[SZZ]);
-        printf("cons: %.16lg %.16lg %.16lg %.16lg %.16lg\n",
-                cons[DDD], cons[TAU], cons[SRR], cons[LLL], cons[SZZ]);
+        printf("H = %.12lg, s2 = %.12lg\n", D*h, s2);
+        printf("0: (%.12lg)\n", wmo1);
     }
 
-    double wmo;
-    if(s2 == 0.0)
-        wmo = 0.0;
-    else
+    double c4 = 1.0;
+    double c3 = 4;
+    double c2 = 5 - s2;
+    double c1 = 2 - 2*s2;
+    double c0 = -s2;
+
+    double wmoMIN = 0.0;
+    double wmoMAX = 1000.0;
+
+    while(1)
     {
-        //Newton-Raphson on a quartic polynomial to solve for w-1
-        //TODO: Minimize truncation error.
-        double c[5];
-        c[0] = -s2*(n-1)*(n-1);
-        c[1] = 2*((e-n)*(e-n)+2*(n-1)*s2);
-        c[2] = (5*e-n)*(e-n)-2*(3-n)*s2;
-        c[3] = 4*(e*e-s2) - 2*n*e;
-        c[4] = e*e-s2;
+        wmo = wmo1;
+        
+        double f =  (((c4*wmo + c3)*wmo + c2)*wmo + c1)*wmo + c0;
+        double df = ((4*c4*wmo + 3*c3)*wmo + 2*c2)*wmo + c1;
 
-        //Bounds
-        double wmomin = 0.0; //u=0
-        double wmomax = sqrt(1.0+s2)-1.0; //eps = P = 0
+        wmo1  = wmo  - f/df;
 
-        //Initial guess: previous w
-        double u2 = 0.0;
-        double l[3] = {prim[URR], prim[UPP], prim[UZZ]};
-        for(i=0; i<3; i++)
-            for(j=0; j<3; j++)
-                u2 += igam[3*i+j]*l[i]*l[j];
-        double wmo0 = u2 / (1.0+sqrt(1.0+u2)); // sqrt(1+u2)-1
+        i++;
 
-        //Run Newton-Raphson
-        double wmo1 = wmo0;
-        i = 0;
-        do
+        if(wmo1 > wmoMAX || wmo1 < wmoMIN)
+            wmo1 = 0.5*(wmoMAX+wmoMIN);
+        else if (f > 0)
+            wmoMAX = wmo;
+        else if (f < 0)
+            wmoMIN = wmo;
+
+        double err = (wmo1-wmo) / (1.0+wmo);
+        //if(err != err)
+        //    printf("WHAT: v2=%.12lg, eta=%.12lg\n");
+
+        if(DEBUG2 && r < DEBUG_RMAX)
         {
-            //TODO: Telescoping evaluation.
-            wmo = wmo1;
-            double f = c[0] + c[1]*wmo + c[2]*wmo*wmo + c[3]*wmo*wmo*wmo
-                        + c[4]*wmo*wmo*wmo*wmo;
-            double df = c[1] + 2*c[2]*wmo + 3*c[3]*wmo*wmo
-                        + 4*c[4]*wmo*wmo*wmo;
-            wmo1 = wmo - f/df;
-
-            if(f > 0.0 && wmo<wmomax)
-                wmomax = wmo;
-            else if(f < 0.0 && wmo > wmomin)
-                wmomin = wmo;
-            if(wmo1 < wmomin || wmo1 > wmomax)
-                wmo1 = 0.5*(wmomin+wmomax);
-            i++;
+            printf("%d: (%.12lg) (%.12lg, %.12lg) %.12lg\n", 
+                    i, wmo1, f, df, err);
         }
-        while(fabs((wmo-wmo1)/(wmo+1.0)) > prec && i < max_iter);
 
-        if(i == max_iter)
-            printf("ERROR: NR failed to converge: err = %.12lg\n", fabs((wmo-wmo1)/(wmo+1.0)));
+        if(fabs(err) < prec && clean < 0)
+            clean = Nextra+1;
+        if(clean >= 0)
+            clean--;
+        if(clean == 0 || i == max_iter)
+            break;
     }
+
+    if(i == max_iter && (DEBUG || DEBUG2) && r < DEBUG_RMAX
+                && fabs(z)<DEBUG_ZMAX)
+    {
+        printf("ERROR: NR failed to converge. x=(%g,%g,%g)  err = %.12lg\n", 
+                x[0], x[1], x[2], fabs(wmo1-wmo)/(1+wmo));
+        printf("    s2 = %.12lg\n", s2);
+        printf("    wmo0 = %.12lg, wmo1 = %.12lg\n", wmo0, wmo1);
+    }
+
+    wmo = wmo1;
 
     //Prim recovery
-    double w = wmo + 1.0;
-    double u0 = w/lapse;
-    double hmo = w*(e-w) / (w*w-n);
+    w = wmo+1.0;
+    double u0 = w/al;
 
     double rho = D / (jac*u0);
     if(rho < RHO_FLOOR)
         rho = RHO_FLOOR;
-    double Pp = n * rho * hmo;
+    //double Pp = P_o_rho * rho;
+    double Pp = P_o_rhoh * rho * h;
     if(Pp < PRE_FLOOR*rho)
         Pp = PRE_FLOOR*rho;
     
-    double h = 1.0 + gamma_law/(gamma_law-1.0) * Pp/rho;
-    double l[3] = {S[0]/(D*h), S[1]/(D*h), S[2]/(D*h)};
+    l[0] = S[0] / (D*h);
+    l[1] = S[1] / (D*h);
+    l[2] = S[2] / (D*h);
 
     prim[RHO] = rho;
     prim[URR] = l[0];
     prim[UPP] = l[1];
     prim[UZZ] = l[2];
     prim[PPP] = Pp;
+
     int q;
-
-    
-
     for( q=NUM_C ; q<NUM_Q ; ++q )
         prim[q] = cons[q]/cons[DDD];
+    
+    if(DEBUG3 && r < DEBUG_RMAX)
+    {
+        FILE *f = fopen("c2p.out", "a");
+        fprintf(f, "%.10lg %.10lg %.10lg %.10lg %.10lg %.10lg\n",
+                    x[0], x[1], prim[URR], prim[UPP], cons[SRR], cons[LLL]);
+        fclose(f);
+    }
 }
 
 void cons2prim_solve_adiabatic(double *cons, double *prim, double *x)
