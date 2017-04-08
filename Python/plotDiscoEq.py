@@ -9,7 +9,7 @@ def plotCheckpoint(file, vars=None, noGhost=False):
     
     print("Loading {0:s}...".format(file))
 
-    t, r, phi, z, prim, dat = du.loadCheckpoint(file, noGhost=True)
+    t, r, phi, z, prim, dat = du.loadCheckpoint(file)
     rjph = dat[0]
     zkph = dat[1]
     primPhi0 = dat[2]
