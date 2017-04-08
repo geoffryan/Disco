@@ -58,3 +58,17 @@ Drift_Exp		0.66666667
 //Disk Parameters
 Mach_Number		20.0
 Include_Atmos		0
+
+//Metric Parameters
+Metric_Par0     0
+Metric_Par1     0.0  //Om_rot
+Metric_Par2     1.0  //M
+Metric_Par3     0.0  //a
+Metric_Par4     0.0
+
+//Initial Condition Parameters
+Init_Par0       0     // 
+Init_Par1       0.0   // 
+Init_Par2       0.0   // 
+Init_Par3       0.0   // 
+Init_Par4       0.0   // 
