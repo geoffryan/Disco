@@ -101,6 +101,7 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Eccentricity"          , VAR_DOUB , &(theList->Eccentricity)    );
          err += readvar( pfile , "Drift_Rate"            , VAR_DOUB , &(theList->Drift_Rate)      );
          err += readvar( pfile , "Drift_Exp"             , VAR_DOUB , &(theList->Drift_Exp)       );
+         err += readvar( pfile , "Grav2D"                , VAR_INT  , &(theList->grav2D)       );
          err += readvar( pfile , "Constrained_Transport" , VAR_INT  , &(theList->CT)              );
          err += readvar( pfile , "Metric_Par0" , VAR_INT  , &(theList->metricPar0));
          err += readvar( pfile , "Metric_Par1" , VAR_DOUB  , &(theList->metricPar1));

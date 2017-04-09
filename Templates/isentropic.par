@@ -54,6 +54,7 @@ Mass_Ratio		0.0
 Eccentricity		0.0
 Drift_Rate		0.0 //-2.5e-4
 Drift_Exp		0.66666667
+Grav2D          1
 
 //Disk Parameters
 Mach_Number		14.0

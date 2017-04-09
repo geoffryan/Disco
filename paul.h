@@ -50,6 +50,7 @@ struct param_list{
    double Mass_Ratio;
    double Eccentricity;
    double Drift_Rate,Drift_Exp;
+   int grav2D;
    int alpha_flag;
 
    int restart_flag;

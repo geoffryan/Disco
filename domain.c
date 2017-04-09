@@ -13,6 +13,7 @@ void setICparams( struct domain * );
 void setHydroParams( struct domain * );
 void setGeometryParams( struct domain * );
 void setRiemannParams( struct domain * );
+void setGravParams( struct domain * );
 void setPlanetParams( struct domain * );
 void setHlldParams( struct domain * );
 void setDiskParams( struct domain * );
@@ -37,6 +38,7 @@ void setupDomain( struct domain * theDomain ){
       theDomain->theCells[jk] = (struct cell *) malloc( Np[jk]*sizeof(struct cell) );
    }
 
+   setGravParams( theDomain );
    setPlanetParams( theDomain );
    int Npl = theDomain->Npl;
    theDomain->thePlanets = (struct planet *) malloc( Npl*sizeof(struct planet) );
