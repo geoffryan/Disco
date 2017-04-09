@@ -26,6 +26,9 @@ def plotCheckpoint(file):
     name = ".".join(file.split("_")[-1].split(".")[:-1])
 
     print("   Plotting")
+    labelsEul = [r"$\rho$", r"$2\pi r \rho v^r$", r"$2\pi r \rho v^z$", 
+                r"$2\pi r^2 \rho F_g^{\hat{\phi}}$", r"$2\pi r \rho \ell v^r$",
+                r"$\Omega$", r"$2\pi r \rho \ell$", r"$P$"]
 
     labelsMHD = [r"$\rho$", r"$P$", r"$v^r$", r"$v^\phi$", r"$v^z$",
                 r"$B^r$", r"$B^\phi$", r"$B^z$", r"$D$", r"$E$",
@@ -48,7 +51,9 @@ def plotCheckpoint(file):
                  r"$-b_zb^r$", r"$-b_zb^\phi$", r"$-b_zb^z$",
                  r"$B^2$", r"$b^2$", r"$c_s$", r"$c_A$", r"$\tau$"]
 
-    if nq <= len(labelsMHD):
+    if nq <= len(labelsEul):
+        labels = labelsEul
+    elif nq <= len(labelsMHD):
         labels = labelsMHD
     elif nq <= len(labelsGRMHD):
         labels = labelsGRMHD

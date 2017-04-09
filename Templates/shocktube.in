@@ -10,6 +10,7 @@ OUTPUT   = ascii
 RESTART  = h5in
 PLANETS  = none
 HLLD     = hlld
+ANALYSIS = diag_euler
 
 METRIC   = flat_rpz
 FRAME    = normal

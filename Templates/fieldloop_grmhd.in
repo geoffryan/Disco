@@ -10,6 +10,7 @@ OUTPUT   = h5out
 RESTART  = h5in
 PLANETS  = none
 HLLD     = hlld_grmhd
+ANALYSIS = diag_euler
 
 METRIC   = flat_rpz
 FRAME    = normal
