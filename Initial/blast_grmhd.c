@@ -3,30 +3,43 @@
 
 // Cylindrical relativistic blast wave in a uniform magnetic field,
 // cf. Del Zanna et al 2007
+// Del Zanna values are:
+//      r0 = 1.0
+//      B0 = 0.1
+//      relFac = 1.0
 
 static double gamma_law = 0.0;
+static double r0 = 0.0;
+static double B0 = 0.0;
+static double relfac = 0.0;
+static double x0 = 0.0;
 
 void setICparams( struct domain * theDomain ){
     gamma_law = theDomain->theParList.Adiabatic_Index;
+    r0 = theDomain->theParList.initPar1;
+    B0 = theDomain->theParList.initPar2;
+    relfac = theDomain->theParList.initPar3;
+    x0 = theDomain->theParList.initPar4;
 }
 
 void initial( double * prim , double * x ){
 
    double r   = x[0];
    double phi = x[1];
+   double R;
+   double y0 = 0.0;
 
-   double r0 = 1.0;
-   double B0 = 0.1;
+   double xx = r*cos(phi);
+   double yy = r*sin(phi);
+   R = sqrt(xx*xx + (yy-x0)*(yy-x0));
 
-   double relfac = 1.0;
-   
    double rhoL = 1.0e-2;
    double PL = relfac*relfac*1.0;
    double rhoR = 1.0e-4;
-   double PR = relfac*relfac*3.0e-5;
+   double PR = relfac*relfac*5.0e-4;
 
-   double rho = r > r0 ? rhoR : rhoL;
-   double Pp  = r > r0 ? PR : PL;
+   double rho = R > r0 ? rhoR : rhoL;
+   double Pp  = R > r0 ? PR : PL;
 
 
    prim[RHO] = rho; 

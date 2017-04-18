@@ -5,7 +5,7 @@ include $(MAKEFILE_OPT)
 MAKEFILE_H5  = $(PWD)/Makefile_dir.in
 include $(MAKEFILE_H5)
 
-TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex sorathia_grmhd
+TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex sorathia_grmhd blast_grmhd
 
 #CC = mpicc
 FLAGS = -O3 -Wall -g
