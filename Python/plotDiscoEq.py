@@ -98,4 +98,4 @@ if __name__ == "__main__":
 
     files = sys.argv[1:]
     for f in files:
-        plotCheckpoint(f, [0,5,6,7], noGhost=False)
+        plotCheckpoint(f, [0,1,2,3], noGhost=False)

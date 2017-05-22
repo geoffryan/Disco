@@ -70,6 +70,23 @@ void set_cell_init(struct cell *c, double *r_jph, double *z_kph, int j, int k)
     }
 }
 
+void set_cell_init_q(struct cell *c, double *r_jph, double *z_kph, 
+                        int j, int k, int *qarr, int nq)
+{
+    double xm[3] = {r_jph[j-1], c->piph - c->dphi, z_kph[k-1]};
+    double xp[3] = {r_jph[j  ], c->piph          , z_kph[k  ]};
+    double r = get_moment_arm(xp, xm);
+    double phi = c->piph - 0.5*c->dphi;
+    double x[3] = {r, phi, 0.5*(z_kph[k]+z_kph[k-1])};
+    double temp_prim[NUM_Q];
+    initial(temp_prim, x);
+    subtract_omega(temp_prim);
+
+    int iq;
+    for(iq=0; iq<nq; iq++)
+        c->prim[qarr[iq]] = temp_prim[qarr[iq]];
+}
+
 void set_cells_copy(struct cell *c, int Np, struct face *theFaces, 
                     int n0, int n1, int LR)
 {
@@ -622,3 +639,114 @@ void boundary_fixed_horizon( struct domain *theDomain)
     }
 }
 
+void boundary_fixed_q_rinn( struct domain *theDomain, int *q, int nq)
+{
+    struct cell **theCells = theDomain->theCells;
+
+    int Nr = theDomain->Nr;
+    int Nz = theDomain->Nz;
+    int *Np = theDomain->Np;
+    int Ng = theDomain->Ng;
+    double *r_jph = theDomain->r_jph;
+    double *z_kph = theDomain->z_kph;
+
+    int *dim_rank = theDomain->dim_rank;
+
+    int i,j,k;
+
+    if(dim_rank[0] == 0 )
+    {
+        for(k=0; k<Nz; k++)
+            for(j=0; j<Ng; j++)
+            {
+                int jk = j+Nr*k;
+                for(i=0; i<Np[jk]; i++)
+                    set_cell_init_q(&(theCells[jk][i]), r_jph, z_kph, j, k,
+                                    q, nq);
+            }  
+    }
+}
+
+void boundary_fixed_q_rout( struct domain *theDomain, int *q, int nq)
+{
+    struct cell **theCells = theDomain->theCells;
+
+    int Nr = theDomain->Nr;
+    int Nz = theDomain->Nz;
+    int *Np = theDomain->Np;
+    int Ng = theDomain->Ng;
+    double *r_jph = theDomain->r_jph;
+    double *z_kph = theDomain->z_kph;
+
+    int *dim_rank = theDomain->dim_rank;
+    int *dim_size = theDomain->dim_size;
+
+    int i,j,k;
+
+    if(dim_rank[0] == dim_size[0]-1)
+    {
+        for(k=0; k<Nz; k++)
+            for(j=Nr-Ng; j<Nr; j++)
+            {
+                int jk = j+Nr*k;
+                for(i=0; i<Np[jk]; i++)
+                    set_cell_init_q(&(theCells[jk][i]), r_jph, z_kph, j, k,
+                                    q, nq);
+            }  
+    }
+}
+
+void boundary_fixed_q_zbot( struct domain *theDomain, int *q, int nq)
+{
+    struct cell **theCells = theDomain->theCells;
+
+    int Nr = theDomain->Nr;
+    int *Np = theDomain->Np;
+    int Ng = theDomain->Ng;
+    double *r_jph = theDomain->r_jph;
+    double *z_kph = theDomain->z_kph;
+
+    int *dim_rank = theDomain->dim_rank;
+
+    int i,j,k;
+
+    if(dim_rank[1] == 0)
+    {
+        for(k=0; k<Ng; k++)
+            for(j=0; j<Nr; j++)
+            {
+                int jk = j+Nr*k;
+                for(i=0; i<Np[jk]; i++)
+                    set_cell_init_q(&(theCells[jk][i]), r_jph, z_kph, j, k,
+                                    q, nq);
+            }  
+    }
+}
+void boundary_fixed_q_ztop( struct domain *theDomain, int *q, int nq)
+{
+    struct cell **theCells = theDomain->theCells;
+
+    int Nr = theDomain->Nr;
+    int Nz = theDomain->Nz;
+    int *Np = theDomain->Np;
+    int Ng = theDomain->Ng;
+    double *r_jph = theDomain->r_jph;
+    double *z_kph = theDomain->z_kph;
+
+    int *dim_rank = theDomain->dim_rank;
+    int *dim_size = theDomain->dim_size;
+
+    int i,j,k;
+
+    if(dim_rank[1] == dim_size[1]-1)
+    {
+        for(k=Nz-Ng; k<Nz; k++)
+            for(j=0; j<Nr; j++)
+            {
+                int jk = j+Nr*k;
+                for(i=0; i<Np[jk]; i++)
+                    set_cell_init_q(&(theCells[jk][i]), r_jph, z_kph, j, k, 
+                                    q, nq);
+            }  
+    }
+}
