@@ -73,3 +73,9 @@ Init_Par1       3.7
 Init_Par2       3.85
 Init_Par3       0.0
 Init_Par4       0.0
+
+//Noise Parameters
+Noise_Type      0       // 0: No Noise, 1: URR and UPP 
+Noise_Abs       0.0     // Amplitude of Absolute Noise
+Noise_Rel       0.0     // Amplitude of Relative Noise
+

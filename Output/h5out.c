@@ -206,6 +206,13 @@ void writePars(struct domain *theDomain, char filename[])
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Init_Par4", &(pars->initPar4),
                     H5T_NATIVE_DOUBLE);
+    
+    dumpVal(filename, "Pars", "Noise_Type", &(pars->noiseType),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Noise_Abs", &(pars->noiseAbs),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Noise_Rel", &(pars->noiseRel),
+                    H5T_NATIVE_DOUBLE);
 }
 
 double get_dV( double * , double * );

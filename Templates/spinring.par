@@ -59,3 +59,9 @@ Grav2D          1
 //Disk Parameters
 Mach_Number		20.0
 Include_Atmos		0
+
+//Noise Parameters
+Noise_Type      0       // 0: No Noise, 1: URR and UPP 
+Noise_Abs       0.0     // Amplitude of Absolute Noise
+Noise_Rel       0.0     // Amplitude of Relative Noise
+

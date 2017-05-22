@@ -81,6 +81,10 @@ struct param_list{
    double initPar2;
    double initPar3;
    double initPar4;
+
+   int noiseType;
+   double noiseAbs;
+   double noiseRel;
 };
 
 struct diagnostic_avg{

@@ -113,6 +113,9 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Init_Par2" , VAR_DOUB  , &(theList->initPar2));
          err += readvar( pfile , "Init_Par3" , VAR_DOUB  , &(theList->initPar3));
          err += readvar( pfile , "Init_Par4" , VAR_DOUB  , &(theList->initPar4));
+         err += readvar( pfile , "Noise_Type" , VAR_INT  , &(theList->noiseType));
+         err += readvar( pfile , "Noise_Abs" , VAR_DOUB  , &(theList->noiseAbs));
+         err += readvar( pfile , "Noise_Rel" , VAR_DOUB  , &(theList->noiseRel));
       }
       MPI_Barrier(MPI_COMM_WORLD);
    }
