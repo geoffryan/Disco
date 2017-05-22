@@ -2,9 +2,13 @@
 #include "../paul.h"
 
 static double gamma_law = 0.0;
+static double x0 = 0.0;
+static double Rl = 0.0;
 
 void setICparams( struct domain * theDomain ){
     gamma_law = theDomain->theParList.Adiabatic_Index;
+    x0 = theDomain->theParList.initPar1;
+    Rl = theDomain->theParList.initPar2;
 }
 
 void initial( double * prim , double * x ){
@@ -12,13 +16,10 @@ void initial( double * prim , double * x ){
    double r   = x[0];
    double phi = x[1];
 
-   double Rl = 0.15;
    double B0 = 1.0e-4;
    double Om = 1.0;
    double P0 = 1.0e-2;
    double rho0 = 1.0;
-
-   double x0 = 0.25;
 
 
    double n = gamma_law/(gamma_law-1.0);

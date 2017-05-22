@@ -27,16 +27,20 @@ def plotCheckpoint(file, vars=None):
         vars = range(nq)
 
     print("   Plotting...")
-    fig, ax = plt.subplots(1,1, figsize=(10,12),subplot_kw={'projection':'polar'})
+    #fig, ax = plt.subplots(1,1, figsize=(10,12),subplot_kw={'projection':'polar'})
+    fig, ax = plt.subplots(1,1, figsize=(4,3),subplot_kw={'projection':'polar'})
     #ax.pcolormesh(rjph, thkph, primPhi0[:,:,q], cmap=plt.cm.inferno)
 
     Br = prim[:,5]
     Bp = prim[:,6]
-    B2 = Br*Br + Bp*Bp
+    B2 = (Br*Br + Bp*Bp) / 1.0e-8
 
-    vmin = B2.min()
-    vmax = B2.max()
-    for i, R in enumerate(np.unique(r)):
+    #vmin = B2.min()
+    #vmax = B2.max()
+    vmin = 0.0
+    vmax = 1.05
+
+    for i, R in enumerate(np.unique(r)[:-2]):
         ind = r==R
         phif = np.empty(len(piph[ind])+1)
         phif[1:] = piph[ind]
@@ -45,19 +49,21 @@ def plotCheckpoint(file, vars=None):
                 cmap=plt.cm.inferno, vmin=vmin, vmax=vmax)
     #ax.plot(np.linspace(0, 2*np.pi, 100), 2*np.ones(100), color='grey', lw=6, ls='-')
     #ax.plot(np.linspace(0, 2*np.pi, 100), 6*np.ones(100), color='grey', lw=6, ls='--')
-    ax.set_theta_direction(-1)
-    ax.set_theta_offset(0.5*np.pi)
+    #ax.set_theta_direction(-1)
+    #ax.set_theta_offset(0.5*np.pi)
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     #ax.tick_params(axis='x', which='both', bottom='off', top='off', 
     #                labelbottom='off')
     #ax.tick_params(axis='y', which='both', bottom='off', top='off', 
     #                labelbottom='off')
-    fig.suptitle(title, fontsize=24)
+    #fig.suptitle(title, fontsize=24)
+    cb = fig.colorbar(C)
+    cb.set_label(r"$B^2$ ($B_0^2$)")
     fig.tight_layout()
     plotname = "plot_eq_{0:s}_lin_B2.png".format(name)
     print("   Saving {0:s}...".format(plotname))
-    fig.savefig(plotname)
+    fig.savefig(plotname, dpi=300)
     plt.close(fig)
         
 

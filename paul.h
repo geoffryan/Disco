@@ -11,15 +11,29 @@ enum{C_FIXED,C_WCELL,C_WRIEMANN};
 
 #define MOVE_CELLS C_WCELL
 
-#define NUM_C 8
-#define NUM_N 1
+//#define NUM_C 8
+//#define NUM_N 1
 #define NUM_Q (NUM_C+NUM_N)
 #define NUM_G 2
 
 //Magnetic field tracking things.  Can be set to zero if there is no MHD.
-#define NUM_EDGES 8    //0, 4 or 8 
-#define NUM_FACES 5    //0, 3 or 5
-#define NUM_AZ_EDGES 4 //0, 0 or 4
+#if CT_MODE == 0        //No CT
+    #define NUM_EDGES 0    
+    #define NUM_FACES 0    
+    #define NUM_AZ_EDGES 0 
+#elif CT_MODE == 1      //2D MHD, no E^phi
+    #define NUM_EDGES 4    
+    #define NUM_FACES 3    
+    #define NUM_AZ_EDGES 0 
+#elif CT_MODE == 2      //3D MHD
+    #define NUM_EDGES 8    
+    #define NUM_FACES 5    
+    #define NUM_AZ_EDGES 4 
+#else                   //default
+    #define NUM_EDGES 0    
+    #define NUM_FACES 0 
+    #define NUM_AZ_EDGES 0 
+#endif
 
 struct param_list{
 
