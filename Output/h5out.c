@@ -93,6 +93,69 @@ void dumpVal(char *filename, char *group, char *dset, void *val,
     writeSimple(filename, group, dset, val, type);
 }
 
+void writeOpts(struct domain *theDomain, char filename[])
+{
+    char buf[256];
+    char *buf2[1] = {buf};
+
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size(strtype, H5T_VARIABLE);
+
+    createGroup(filename, "Opts");
+
+    //printf("%d %s\n", strlen(INITIAL), INITIAL);
+    strncpy(buf, INITIAL, 256);
+    buf[255] = '\0';
+    //printf("%d %s\n", strlen(buf), buf);
+    dumpVal(filename, "Opts", "INITIAL", buf2, strtype);
+    //printf("SUCCESS");
+    
+    strncpy(buf, HYDRO, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "HYDRO", buf2, strtype);
+    
+    strncpy(buf, BOUNDARY, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "BOUNDARY", buf2, strtype);
+    
+    strncpy(buf, OUTPUT, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "OUTPUT", buf2, strtype);
+    
+    strncpy(buf, RESTART, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "RESTART", buf2, strtype);
+    
+    strncpy(buf, PLANETS, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "PLANETS", buf2, strtype);
+    
+    strncpy(buf, HLLD, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "HLLD", buf2, strtype);
+    
+    strncpy(buf, ANALYSIS, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "ANALYSIS", buf2, strtype);
+    
+    strncpy(buf, METRIC, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "METRIC", buf2, strtype);
+    
+    strncpy(buf, FRAME, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "Opts", "FRAME", buf2, strtype);
+
+    int val;
+    
+    val = NUM_C;
+    dumpVal(filename, "Opts", "NUM_C", &val, H5T_NATIVE_INT);
+    val = NUM_N;
+    dumpVal(filename, "Opts", "NUM_N", &val, H5T_NATIVE_INT);
+    val = CT_MODE;
+    dumpVal(filename, "Opts", "CT_MODE", &val, H5T_NATIVE_INT);
+}
+
 void writePars(struct domain *theDomain, char filename[])
 {
     struct param_list *pars = &(theDomain->theParList);
@@ -318,6 +381,7 @@ void output( struct domain * theDomain , char * filestart ){
    if( rank==0 ){
       writeSimple(filename,"Grid","T",&(theDomain->t),H5T_NATIVE_DOUBLE);
       writePars(theDomain, filename);
+      writeOpts(theDomain, filename);
       double PlanetData[Npl*NpDat];
       int p;
       for( p=0 ; p<Npl ; ++p ){
