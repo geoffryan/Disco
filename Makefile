@@ -7,8 +7,11 @@ include $(MAKEFILE_H5)
 
 TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex sorathia_grmhd blast_grmhd fieldloop_grmhd bl
 
-OPT_DEFS = -DHYDRO=\"$(HYDRO)\"
+GIT_VERSION = $(shell git describe --dirty --always --tags)
+
+OPT_DEFS = -DGIT_VERSION=\"$(GIT_VERSION)\"
 OPT_DEFS += -DINITIAL=\"$(INITIAL)\"
+OPT_DEFS += -DHYDRO=\"$(HYDRO)\"
 OPT_DEFS += -DBOUNDARY=\"$(BOUNDARY)\"
 OPT_DEFS += -DOUTPUT=\"$(OUTPUT)\"
 OPT_DEFS += -DRESTART=\"$(RESTART)\"

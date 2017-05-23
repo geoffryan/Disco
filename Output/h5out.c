@@ -103,12 +103,13 @@ void writeOpts(struct domain *theDomain, char filename[])
 
     createGroup(filename, "Opts");
 
-    //printf("%d %s\n", strlen(INITIAL), INITIAL);
+    strncpy(buf, GIT_VERSION, 256);
+    buf[255] = '\0';
+    dumpVal(filename, "/", "GIT_VERSION", buf2, strtype);
+
     strncpy(buf, INITIAL, 256);
     buf[255] = '\0';
-    //printf("%d %s\n", strlen(buf), buf);
     dumpVal(filename, "Opts", "INITIAL", buf2, strtype);
-    //printf("SUCCESS");
     
     strncpy(buf, HYDRO, 256);
     buf[255] = '\0';
