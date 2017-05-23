@@ -612,3 +612,23 @@ void AMR( struct domain * theDomain ){
    }
 }
 
+void print_welcome()
+{
+    printf("\nDisco!\n\n");
+    printf("Git Version: %s\n\n", GIT_VERSION);
+    printf("*Compile-time Options*\n");
+    printf("HYDRO: %s\n", HYDRO);
+    printf("INITIAL: %s\n", INITIAL);
+    printf("BOUNDARY: %s\n", BOUNDARY);
+    printf("OUTPUT: %s\n", OUTPUT);
+    printf("RESTART: %s\n", RESTART);
+    printf("PLANETS: %s\n", PLANETS);
+    printf("HLLD: %s\n", HLLD);
+    printf("ANALYSIS: %s\n", ANALYSIS);
+    printf("METRIC: %s\n", METRIC);
+    printf("FRAME: %s\n", FRAME);
+    printf("NUM_C: %d\n", NUM_C);
+    printf("NUM_N: %d\n", NUM_N);
+    printf("CT_MODE: %d\n", CT_MODE);
+    printf("\n");
+}
