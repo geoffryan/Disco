@@ -40,10 +40,8 @@ double get_om1( double r ){
 double get_cs2( double r ){
 //   double nu = .5;
 //   return( .5/Mach/Mach/pow(r,2.*nu) );
-   if(Mach > 0.0)
-      return 1./(Mach*Mach);
-   else
-      return M*H0*H0 / (2*r1*r1*r1);
+     return 1./(Mach*Mach);
+//   return M*H0*H0 / (2*r1*r1*r1);
 //   return( 1./Mach/Mach );
 //   return(1.0);
 }

@@ -2,7 +2,7 @@
 #include "../metric.h"
 
 /*
- * This is the Schwarzschild metric in Kerr-Schild cylindrical coordinates 
+ * This is the Schwarzschild metric in Schwarzschild cylindrical coordinates 
  * (t, r, phi, z). These are related to the usual spherical Schwarzschild 
  * coordinates (t_sc, R, theta, phi) by: t = t_sc + 2M log|R/2M-1|, 
  * r = R sin(theta), phi = phi, and z = R cos(theta).
