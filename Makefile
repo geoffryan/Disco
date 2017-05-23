@@ -7,7 +7,21 @@ include $(MAKEFILE_H5)
 
 TEMPLATES = bexp bx3d earth fieldloop flock flock_grmhd isentropic jupiter kepler kh mri2 rotor shear shocktube spinring spread vortex sorathia_grmhd blast_grmhd fieldloop_grmhd bl
 
-FLAGS = -O3 -Wall -g -D NUM_C=$(NUM_C) -D NUM_N=$(NUM_N) -D CT_MODE=$(CT_MODE)
+OPT_DEFS = -DHYDRO=\"$(HYDRO)\"
+OPT_DEFS += -DINITIAL=\"$(INITIAL)\"
+OPT_DEFS += -DBOUNDARY=\"$(BOUNDARY)\"
+OPT_DEFS += -DOUTPUT=\"$(OUTPUT)\"
+OPT_DEFS += -DRESTART=\"$(RESTART)\"
+OPT_DEFS += -DPLANETS=\"$(PLANETS)\"
+OPT_DEFS += -DHLLD=\"$(HLLD)\"
+OPT_DEFS += -DANALYSIS=\"$(ANALYSIS)\"
+OPT_DEFS += -DMETRIC=\"$(METRIC)\"
+OPT_DEFS += -DFRAME=\"$(FRAME)\"
+OPT_DEFS += -DNUM_C=$(NUM_C)
+OPT_DEFS += -DNUM_N=$(NUM_N)
+OPT_DEFS += -DCT_MODE=$(CT_MODE)
+
+FLAGS = -O3 -Wall -g $(OPT_DEFS)
 
 INC = -I$(H55)/include
 LIB = -L$(H55)/lib -lm -lhdf5
