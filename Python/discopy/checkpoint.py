@@ -3,6 +3,8 @@ import math
 import h5py as h5
 import numpy as np
 
+strType = h5.special_dtype(vlen=bytes)
+
 def loadPars(f):
     pars = dict()
 
@@ -60,6 +62,58 @@ def loadData(f):
     data = (prim, bflux, piph, planets, diagRZ, diagR, diagZ)
 
     return data
+
+def savePars(f, pars):
+
+    g = f.create_group("Pars")
+    for key in pars:
+        g.create_dataset(key, data=np.array([pars[key]]))
+
+def saveOpts(f, opts):
+
+    g = f.create_group("Opts")
+    for key in opts:
+        if isinstance(opts[key], str):
+            d = g.create_dataset(key, (1,), dtype=strType)
+            d[0] = opts[key]
+        else:
+            g.create_dataset(key, data=np.array([opts[key]]))
+
+def saveGrid(f, grid):
+
+    g = f.create_group("Grid")
+    g.create_dataset('T', data=np.array([grid[0]]))
+    g.create_dataset('Id_phi0', data=grid[1])
+    g.create_dataset('Index', data=grid[2])
+    g.create_dataset('Np', data=grid[3])
+    g.create_dataset('r_jph', data=grid[4])
+    g.create_dataset('z_kph', data=grid[5])
+
+def saveData(f, data):
+
+    g = f.create_group("Data")
+    g.create_dataset('Planets', data=data[3])
+    g.create_dataset('Poloidal_Diagnostics', data=data[4])
+    g.create_dataset('Radial_Diagnostics', data=data[5])
+    g.create_dataset('Vertical_Diagnostics', data=data[6])
+
+    prim = data[0]
+    bflux = data[1]
+    piph = data[2]
+
+    if bflux is None:
+        nfaces = 0
+    else:
+        nfaces = bflux.shape[1]
+    nq = prim.shape[1]
+    N = prim.shape[0]
+
+    d = g.create_dataset('Cells', (N,nq+nfaces+1), dtype=np.float64)
+    d[:,:nq] = prim[:,:]
+    if bflux is not None:
+        d[:,nq:nq+nfaces] = bflux[:,:]
+    d[:,-1] = piph[:]
+
 
 def loadCheckpointAll(filename):
 
@@ -137,6 +191,26 @@ def loadDiagRZ(filename):
 
     return t, r, z, diag, rjph, zkph
 
+def saveCheckpoint(checkpoint, filename):
+
+    git = checkpoint[0]
+    pars = checkpoint[1]
+    opts = checkpoint[2]
+    grid = checkpoint[3]
+    data = checkpoint[4]
+
+    f = h5.File(filename, "w")
+
+    d = f.create_dataset("GIT_VERSION", (1,), dtype=strType)
+    d[0] = git
+
+    savePars(f, pars)
+    saveOpts(f, opts)
+    saveGrid(f, grid)
+    saveData(f, data)
+
+    f.close()
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -146,8 +220,29 @@ if __name__ == "__main__":
 
     checkpoint = loadCheckpointAll(sys.argv[1])
 
+    print("GIT")
     print(checkpoint[0])
+    print("PARS")
     print(checkpoint[1])
+    print("OPTS")
     print(checkpoint[2])
+    print("GRID")
     print(checkpoint[3])
+    print("DATA")
+    print(checkpoint[4])
+
+    saveCheckpoint(checkpoint, "discopytest.h5")
+
+    checkpoint2 = loadCheckpointAll("discopytest.h5")
+
+    print("GIT")
+    print(checkpoint2[0])
+    print("PARS")
+    print(checkpoint2[1])
+    print("OPTS")
+    print(checkpoint2[2])
+    print("GRID")
+    print(checkpoint2[3])
+    print("DATA")
+    print(checkpoint2[4])
 

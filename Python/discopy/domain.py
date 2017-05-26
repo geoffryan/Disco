@@ -16,6 +16,7 @@ class DiscoDomain:
     rjph = None
     zkph = None
     piph = None
+    _index = None
     
     prim = None
     bflux = None
@@ -48,6 +49,13 @@ class DiscoDomain:
 
         return outStr
 
+    def writeCheckpoint(self, filename):
+
+        grid = self._packGridTuple()
+        data = self._packDataTuple()
+        checkpoint = (self.git, self._pars, self._opts, grid, data)
+        cp.saveCheckpoint(checkpoint, filename)
+
     @property
     def numQ(self):
         return self.prim[0][0].shape[1]
@@ -61,9 +69,19 @@ class DiscoDomain:
         return self.zkph.shape[0]-1
 
     @property
+    def N(self):
+        return self.numPhi.sum()
+
+    @property
     def numPhi(self):
         return np.array([[self.piph[k][j].shape[0] for j in range(self.numR)]
-                            for k in range(self.numZ)])
+                            for k in range(self.numZ)], dtype=np.int)
+
+    @property
+    def numBf(self):
+        if self.bflux is None:
+            return 0
+        return self.bflux[0][0].shape[1]
 
     @property
     def R(self):
@@ -72,6 +90,26 @@ class DiscoDomain:
     @property
     def Z(self):
         return np.atleast_1d(0.5*(self.zkph[:-1] + self.zkph[1:]))
+
+    @property
+    def Rmax(self):
+        return self.rjph.max()
+    
+    @property
+    def Rmin(self):
+        return self.rjph.min()
+    
+    @property
+    def Zmax(self):
+        return self.zkph.max()
+    
+    @property
+    def Zmin(self):
+        return self.zkph.min()
+
+    @property
+    def Phimax(self):
+        return self._pars['Phi_Max']
 
     def _loadFromCheckpoint(self, filename):
 
@@ -87,6 +125,39 @@ class DiscoDomain:
         zkph = grid[5]
         index = grid[2]
         nphi = grid[3]
+
+        prim, bflux, piph, planets, diagRZ, diagR, diagZ = \
+                                        self._unpackDataTuple(grid, data)
+
+        self.git = git
+        self._pars = pars
+        self._opts = opts
+
+        self.t = grid[0]
+        self.rjph = rjph
+        self.zkph = zkph
+        self._index = index
+
+        self.piph = piph
+        self.prim = prim
+        self.bflux = bflux
+
+        self.planets = planets
+        self.diagRZ = diagRZ
+        self.diagR = diagR
+        self.diagZ = diagZ
+
+    def _loadFromParfile(self, filename):
+
+        return None
+
+    def _unpackDataTuple(self, grid, data):
+
+        rjph = grid[4]
+        zkph = grid[5]
+        index = grid[2]
+        nphi = grid[3]
+
         nr = rjph.shape[0]-1
         nz = zkph.shape[0]-1
 
@@ -122,26 +193,66 @@ class DiscoDomain:
         diagR = data[5]
         diagZ = data[6]
 
-        self.git = git
-        self._pars = pars
-        self._opts = opts
+        return (prim, bflux, piph, planets, diagRZ, diagR, diagZ)
 
-        self.t = grid[0]
-        self.rjph = rjph
-        self.zkph = zkph
+    def _packGridTuple(self):
 
-        self.piph = piph
-        self.prim = prim
-        self.bflux = bflux
+        idphi0 = self._getIndPhi(0.0)
 
-        self.planets = planets
-        self.diagRZ = diagRZ
-        self.diagR = diagR
-        self.diagZ = diagZ
+        grid = (self.t, idphi0, self._index, self.numPhi, self.rjph, self.zkph)
+        
+        return grid
 
-    def _loadFromParfile(self, filename):
+    def _packDataTuple(self):
 
-        return None
+        nr = self.numR
+        nz = self.numZ
+        N = self.N
+        nq = self.numQ
+
+        piph = np.empty((N,))
+        prim = np.empty((N,nq))
+        bflux = None
+        if self.bflux is not None:
+            nbf = self.numBf
+            bflux = np.empty((N,nbf))
+
+        nphi = self.numPhi
+
+        for k in range(nz):
+            for j in range(nr):
+                n1 = self._index[k,j]
+                n2 = self._index[k,j] + nphi[k,j]
+                piph[n1:n2] = self.piph[k][j][:]
+                prim[n1:n2,:] = self.prim[k][j][:,:]
+                if bflux is not None:
+                    bflux[n1:n2,:] = self.bflux[k][j][:,:]
+
+        data = (prim, bflux, piph, self.planets, self.diagRZ, self.diagR,
+                self.diagZ)
+
+        return data
+
+    def _getIndPhi(self, phi):
+        nr = self.numR
+        nz = self.numZ
+        nphi = self.numPhi
+
+        ind = np.empty((nz, nr), dtype=np.int)
+        index = self._index
+
+        phimax = self.Phimax
+
+        for k in range(nz):
+            for j in range(nr):
+                ann = self.piph[k][j] - phi
+                while ann.max() > 0.5*phimax:
+                    ann[ann > 0.5*phimax] -= phimax
+                while ann.min() < -0.5*phimax:
+                    ann[ann < -0.5*phimax] += phimax
+                ind[k,j] = index[k,j] + np.where(ann == ann[ann>0].min())[0]
+
+        return ind
 
 
 if __name__ == "__main__":
@@ -156,3 +267,6 @@ if __name__ == "__main__":
     print(dom.R)
     print(dom.Z)
     print(dom.numPhi)
+    print(dom._pars)
+
+    dom.writeCheckpoint("discopy_dom_test.h5")
