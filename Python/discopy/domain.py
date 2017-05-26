@@ -2,6 +2,7 @@ import math
 import sys
 import numpy as np
 import checkpoint as cp
+import pars as pr
 
 class DiscoDomain:
 
@@ -55,6 +56,23 @@ class DiscoDomain:
         data = self._packDataTuple()
         checkpoint = (self.git, self._pars, self._opts, grid, data)
         cp.saveCheckpoint(checkpoint, filename)
+
+    def getIndicesAt(self, r, phi, z):
+        j = np.searchsorted(self.rjph, r) - 1
+        k = np.searchsorted(self.zkph, z) - 1
+        phimax = self.Phimax
+        piph = self.piph[k][j]
+        ann = piph - phi
+        while (ann > 0.5*phimax).any():
+            ann[ann > 0.5*phimax] -= phimax
+        while (ann < -0.5*phimax).any():
+            ann[ann < -0.5*phimax] += phimax
+        i = np.where(ann == ann[ann>0].min())[0]
+        return i, j, k
+
+    def getPrimAt(self, r, phi, z):
+        i, j, k = self.getIndicesAt(r, phi, z)
+        return self.prim[k][j][i,:]
 
     @property
     def numQ(self):
@@ -149,7 +167,73 @@ class DiscoDomain:
 
     def _loadFromParfile(self, filename):
 
-        return None
+        pars = pr.readParfile(filename)
+        self._pars = pars
+        self._setupFromPars()
+
+    def _setupFromPars(self):
+        pars = self._pars
+        nr = pars['Num_R']
+        nz = pars['Num_Z']
+        rmin = pars['R_Min']
+        rmax = pars['R_Max']
+        zmin = pars['Z_Min']
+        zmax = pars['Z_Max']
+        phimax = pars['Phi_Max']
+
+        if nz > 1 and pars['Z_Periodic'] != 0:
+            z0 = -2
+            z1 = nz+2
+        else:
+            z0 = 0
+            z1 = nz
+
+        x = np.arange(nr+1)/float(nr)
+        if pars['Log_Zoning'] == 0:
+            rjph = rmin + x*(rmax-rmin)
+        elif pars['Log_Zoning'] == 1:
+            rjph = rmin*np.power(rmax/rmin, x)
+        else:
+            r0 = pars['Log_Radius']
+            rjph = r0*np.power(rmax/r0,x) + rmin-r0 + (r0-rmin)*x
+
+        x = np.arange(z0,z1+1)/float(nz)
+        zkph = zmin + x*(zmax-zmin)
+
+        aspect = pars['aspect']
+        numphi = np.empty((nz,nr), dtype=np.int)
+
+        for j in range(nr):
+            dr = rjph[j+1]-rjph[j]
+            rp = rjph[j+1]
+            dphi = dr/rp * aspect
+            nphi = int(phimax/dphi)
+            if nphi < 4:
+                nphi = 4
+            numphi[:,j] = nphi
+
+        p0 = phimax * np.random.rand(nz,nr)
+        piph = [[p0[k,j] + np.arange(numphi[k,j])*phimax/numphi[k,j]
+                    for j in range(nr)] for k in range(nz)]
+
+        for k in range(nz):
+            for j in range(nr):
+                piph[k][j][piph[k][j] > phimax] -= phimax
+
+        index = np.empty((nz,nr), np.int)
+        for k in range(nz):
+            if k == 0:
+                index[0,0] = 0
+            else:
+                index[k,0] = index[k-1,-1] + numphi[k-1,-1]
+            for j in range(1,nr):
+                index[k,j] = index[k,j-1] + numphi[k,j-1]
+
+        self.rjph = rjph
+        self.zkph = zkph
+        self.piph = piph
+        self._index = index
+
 
     def _unpackDataTuple(self, grid, data):
 
@@ -258,15 +342,19 @@ class DiscoDomain:
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
-        print("usage: $ python domain.py <checkpoint.h5>")
+        print("usage: $ python domain.py <checkpoint.h5> <in.par>")
         print("Builds DiscoDomain object from given checkpoint")
 
     dom = DiscoDomain(sys.argv[1])
-    print(dom)
-
-    print(dom.R)
-    print(dom.Z)
+    print(dom.rjph)
+    print(dom.zkph)
     print(dom.numPhi)
-    print(dom._pars)
 
     dom.writeCheckpoint("discopy_dom_test.h5")
+
+    if len(sys.argv) >= 3:
+        dom2 = DiscoDomain(parFile=sys.argv[2])
+        print(dom2.rjph)
+        print(dom2.zkph)
+        print(dom2.numPhi)
+

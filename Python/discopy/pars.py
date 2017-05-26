@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 parnames = ['Restart',
             'T_Start',
@@ -62,6 +63,9 @@ def readParfile(filename):
 
     pars = dict()
 
+    t2pi = True
+    p2pi = True
+
     for line in f:
 
         words = line.split()
@@ -79,7 +83,20 @@ def readParfile(filename):
                     val = None
             pars[key] = val
 
+        if words[0] is "T_Times_2pi":
+            if int(words[1]) != 0:
+                t2pi = True
+        if words[0] is "P_Times_2pi":
+            if int(words[1]) != 0:
+                p2pi = True
+
     f.close()
+
+    if t2pi:
+        pars['T_Start'] *= 2*np.pi
+        pars['T_End'] *= 2*np.pi
+    if p2pi:
+        pars['Phi_Max'] *= 2*np.pi
 
     return pars
 
