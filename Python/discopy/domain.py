@@ -74,6 +74,19 @@ class DiscoDomain:
         i, j, k = self.getIndicesAt(r, phi, z)
         return self.prim[k][j][i,:]
 
+    def dPhi(self, k, j):
+        piph = self.piph[k][j]
+        phimax = self.Phimax
+        dphi = piph-np.roll(piph, 1)
+        while (dphi < 0).any():
+            dphi[dphi < 0] += phimax
+        while (dphi > phimax).any()
+            dphi[dphi > 0] -= phimax
+        return dphi
+
+    def Phi(self, k, j):
+        return self.piph[k][j]-0.5*self.dPhi(k,j)
+
     @property
     def numQ(self):
         return self.prim[0][0].shape[1]
