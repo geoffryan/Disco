@@ -3,12 +3,12 @@
 # This file contains user-specified build options
 
 # Build options
-INITIAL  = spread
+INITIAL  = kep_ring
 HYDRO    = euler
 BOUNDARY = fixed
 OUTPUT   = ascii
 RESTART  = h5in
-PLANETS  = sun
+PLANETS  = cm
 HLLD     = hlld
 ANALYSIS = diag_disk2d
 

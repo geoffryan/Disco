@@ -81,6 +81,7 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Max_Aspect_Short"      , VAR_DOUB , &(theList->MaxShort)        );
          err += readvar( pfile , "Max_Aspect_Long"       , VAR_DOUB , &(theList->MaxLong)         );
          err += readvar( pfile , "CFL"                   , VAR_DOUB , &(theList->CFL)             );
+         err += readvar( pfile , "Max_DT"                   , VAR_DOUB , &(theList->maxDT)             );
          err += readvar( pfile , "PLM"                   , VAR_DOUB , &(theList->PLM)             );
          err += readvar( pfile , "Adiabatic_Index"       , VAR_DOUB , &(theList->Adiabatic_Index) );
          err += readvar( pfile , "Isothermal"            , VAR_INT  , &(theList->isothermal_flag) );
