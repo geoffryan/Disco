@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 import discopy as dp
 
 def remap(d1, d2):
@@ -11,17 +12,22 @@ def remap(d1, d2):
     for k in range(d2.numZ):
         sheet = []
         for j in range(d2.numR):
-            sheet.append(np.empty(d2.numPhi[k,j], nq))
+            sheet.append(np.empty((d2.numPhi[k,j], nq),np.float))
         prim.append(sheet)
 
     for k in range(d2.numZ):
         for j in range(d2.numR):
+            print("   Processing k = {0:04d}, j = {1:04d}".format(k, j))
             phi = d2.Phi(k, j)
             for i in range(d2.numPhi[k,j]):
                 prim1 = d1.getPrimAt(r[j], phi[i], z[k])
                 prim[k][j][i,:] = prim1[:]
 
+    d2.t = d1.t
     d2.prim = prim
+    d2._opts = d1._opts.copy()
+    d2.planets = d1.planets.copy()
+
 
 
 if __name__ == "__main__":

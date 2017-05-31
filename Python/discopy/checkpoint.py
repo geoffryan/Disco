@@ -55,9 +55,19 @@ def loadData(f):
     prim = g['Cells'][:,:-1-nfaces]
     piph = g['Cells'][:,-1]
     planets = g['Planets'][...]
-    diagRZ = g['Poloidal_Diagnostics'][...]
-    diagR = g['Radial_Diagnostics'][...]
-    diagZ = g['Vertical_Diagnostics'][...]
+    
+    try:
+        diagRZ = g['Poloidal_Diagnostics'][...]
+    except KeyError:
+        diagRZ = None
+    try:
+        diagR = g['Radial_Diagnostics'][...]
+    except KeyError:
+        diagR = None
+    try:
+        diagZ = g['Vertical_Diagnostics'][...]
+    except KeyError:
+        diagZ = None
 
     data = (prim, bflux, piph, planets, diagRZ, diagR, diagZ)
 
@@ -93,9 +103,12 @@ def saveData(f, data):
 
     g = f.create_group("Data")
     g.create_dataset('Planets', data=data[3])
-    g.create_dataset('Poloidal_Diagnostics', data=data[4])
-    g.create_dataset('Radial_Diagnostics', data=data[5])
-    g.create_dataset('Vertical_Diagnostics', data=data[6])
+    if data[4] is not None:
+        g.create_dataset('Poloidal_Diagnostics', data=data[4])
+    if data[5] is not None:
+        g.create_dataset('Radial_Diagnostics', data=data[5])
+    if data[6] is not None:
+        g.create_dataset('Vertical_Diagnostics', data=data[6])
 
     prim = data[0]
     bflux = data[1]
@@ -209,6 +222,11 @@ def saveCheckpoint(checkpoint, filename):
     saveGrid(f, grid)
     saveData(f, data)
 
+    f.close()
+
+def setTime(filename, t=0.0):
+    f = h5.File(filename, "r+")
+    f['Grid/T'][0] = t
     f.close()
 
 if __name__ == "__main__":
