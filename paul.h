@@ -1,6 +1,5 @@
 enum{RHO,PPP,URR,UPP,UZZ,BRR,BPP,BZZ};
 enum{DDD,TAU,SRR,LLL,SZZ};
-enum{C_FIXED,C_WCELL,C_WRIEMANN};
 
 #include <mpi.h>
 #include <stdio.h>
@@ -9,10 +8,9 @@ enum{C_FIXED,C_WCELL,C_WRIEMANN};
 #include <string.h>
 #include <time.h>
 
-#define MOVE_CELLS C_WCELL
+// NUM_C, NUM_N, and CT_MODE are specified at compile time and defined
+// with -D in the Makefile
 
-//#define NUM_C 8
-//#define NUM_N 1
 #define NUM_Q (NUM_C+NUM_N)
 #define NUM_G 2
 

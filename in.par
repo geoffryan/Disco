@@ -34,8 +34,9 @@ Log_Radius		0.1	//Only for option 2 of Log_Zoning
 //Numerical Parameters
 CFL			0.2
 PLM			1.0
+Max_DT      0.0
 Riemann_Solver		0	//0=HLL, 1=HLLC, 2=HLLD
-Mesh_Motion		    0	//0=Fixed, 1=By Cell, 2=Riemann Solver, 3=Avg
+Mesh_Motion		    0	//0=Fixed, 1=By Cell, 2=Riemann, 3=Avg, 4=Exact
 Absorbing_BC		0
 Initial_Regrid		0
 Density_Floor		0.0 //1e-5
