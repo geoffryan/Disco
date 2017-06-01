@@ -46,7 +46,7 @@ double getmindt( struct domain * theDomain ){
    double * r_jph = theDomain->r_jph;
    double * z_kph = theDomain->z_kph;
 
-   double dt = 1e100;
+   double dt = theDomain->theParList.maxDT / theDomain->theParList.CFL;
    int i,j,k;
    for( j=1 ; j<Nr-1 ; ++j ){
       for( k=0 ; k<Nz ; ++k ){

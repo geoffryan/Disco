@@ -80,7 +80,7 @@ class DiscoDomain:
         dphi = piph-np.roll(piph, 1)
         while (dphi < 0).any():
             dphi[dphi < 0] += phimax
-        while (dphi > phimax).any()
+        while (dphi > phimax).any():
             dphi[dphi > 0] -= phimax
         return dphi
 

@@ -53,7 +53,7 @@ struct param_list{
    int Mesh_Motion, Riemann_Solver;
    int Absorb_BC, Initial_Regrid, visc_flag, include_atmos;
 
-   double CFL, PLM;
+   double CFL, PLM, maxDT;
    double Density_Floor, Pressure_Floor;
 
    double Adiabatic_Index;

@@ -10,7 +10,7 @@ OUTPUT   = h5out
 RESTART  = h5in
 PLANETS  = sun
 HLLD     = hlld
-ANALYSIS = diag_euler
+ANALYSIS = diag_disk2d
 
 METRIC   = flat_rpz
 FRAME    = normal
