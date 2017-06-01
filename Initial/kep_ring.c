@@ -24,7 +24,7 @@ void initial( double * prim , double * x ){
    double r = x[0];
    double phi = x[1];
 
-   double rho = sig0 + (sig1-sig0)*exp(0.5*(r-r0)*(r-r0)/(dr*dr));
+   double rho = sig0 + (sig1-sig0)*exp(-0.5*(r-r0)*(r-r0)/(dr*dr));
    double cs20 = 1.0/r0 / (mach*mach);
    double Pp = sig1 * cs20 / gam;
    double omega = 1.0/pow(r,1.5);
