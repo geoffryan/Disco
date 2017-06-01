@@ -14,8 +14,8 @@ def plotCheckpoint(file):
     nq = prim.shape[1]
 
     fig, ax = plt.subplots(2,3,figsize=(14,9))
-    du.plotAx(ax[0,0], r, prim[:,0], "linear", "log", r"$r$", r"$\rho$", 'k+')
-    du.plotAx(ax[0,1], r, prim[:,1], "linear", "log", r"$r$", r"$P$", 'k+')
+    du.plotAx(ax[0,0], r, prim[:,0], "linear", "linear", r"$r$", r"$\rho$", 'k+')
+    du.plotAx(ax[0,1], r, prim[:,1], "linear", "linear", r"$r$", r"$P$", 'k+')
     du.plotAx(ax[1,0], r, prim[:,2], "linear", "linear", r"$r$", r"$u_r$", 'k+')
     du.plotAx(ax[1,1], r, prim[:,3], "linear", "linear", r"$r$", r"$u_\phi$",'k+')
     du.plotAx(ax[1,2], r, prim[:,4], "linear", "linear", r"$r$", r"$u_z$", 'k+')

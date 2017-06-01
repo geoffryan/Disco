@@ -5,8 +5,8 @@
 # Build options
 INITIAL  = kep_ring
 HYDRO    = euler
-BOUNDARY = fixed
-OUTPUT   = ascii
+BOUNDARY = zerograd_omk
+OUTPUT   = h5out
 RESTART  = h5in
 PLANETS  = cm
 HLLD     = hlld

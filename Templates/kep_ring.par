@@ -47,7 +47,7 @@ Constrained_Transport   0
 Adiabatic_Index		1.66666666667
 Isothermal		    0
 Use_Viscosity		0
-Viscosity		    1e-5
+Viscosity		    0.0
 Use_As_Alpha		0      //1
 
 //Planet Parameters	

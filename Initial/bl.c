@@ -8,6 +8,9 @@ static double dr = 0.0;
 static double sig0 = 0.0;
 static double sig_atm = 0.0;
 static double mach = 0.0;
+static int isothermal = 0;
+
+double get_cs2(double r);
 
 double x_func_sin2(double x, void *args);
 double r_func_schw_sc(double r, void *args);
@@ -23,6 +26,7 @@ void setICparams( struct domain * theDomain ){
    sig0 = theDomain->theParList.initPar3;
    sig_atm = theDomain->theParList.initPar4;
    mach = theDomain->theParList.Disk_Mach;
+   isothermal = theDomain->theParList.isothermal_flag;
 }
 
 void initial( double * prim , double * x ){
@@ -39,7 +43,12 @@ void initial( double * prim , double * x ){
 
    double vp, u0, sig, pi;
 
-   double cs20 = M/(r0 * mach*mach);
+   double cs20;
+   if(isothermal)
+      cs20 = get_cs2(r);
+   else
+      cs20 = M/(r0 * mach*mach);
+
    double pi0 = sig0 * cs20/gam;
 
    if(r > rp)
@@ -55,10 +64,16 @@ void initial( double * prim , double * x ){
        u0 = 1.0/sqrt(1-2*M/r-r*r*vp*vp);
        double args[4] = {M, rm, rp, 0.0};
        double Ir = int_sim_ad(r, rp, 1.0e-8, &r_func_schw_sc, args);
-       //sig = sig0 * exp(-Ir/cs20);
-       //pi = sig*cs20/gam;
-       sig = sig0 * pow(1.0 - (gam-1)*Ir/cs20, 1.0/(gam-1));
-       pi = pi0 * pow(sig/sig0, gam);
+       if(isothermal)
+       {
+           sig = sig0 * exp(-Ir/cs20);
+           pi = sig*cs20/gam;
+       }
+       else
+       {
+           sig = sig0 * pow(1.0 - (gam-1)*Ir/cs20, 1.0/(gam-1));
+           pi = pi0 * pow(sig/sig0, gam);
+       }
    }
    else
    {
@@ -66,10 +81,16 @@ void initial( double * prim , double * x ){
        u0 = 1.0/sqrt(1-2*M/r);
        double args[4] = {M, rm, rp, 0.0};
        double Ir = int_sim_ad(r, rp, 1.0e-8, &r_func_schw_sc, args);
-       //sig = sig0 * exp(-Ir/cs20);
-       //pi = sig*cs20/gam;
-       sig = sig0 * pow(1.0 - (gam-1)*Ir/cs20, 1.0/(gam-1));
-       pi = pi0 * pow(sig/sig0, gam);
+       if(isothermal)
+       {
+           sig = sig0 * exp(-Ir/cs20);
+           pi = sig*cs20/gam;
+       }
+       else
+       {
+           sig = sig0 * pow(1.0 - (gam-1)*Ir/cs20, 1.0/(gam-1));
+           pi = pi0 * pow(sig/sig0, gam);
+       }
    }
 
    if (sig < sig_atm)
