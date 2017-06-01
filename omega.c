@@ -9,6 +9,11 @@ static double H0 = 0.0;
 static double M = 0.0;
 
 void setDiskParams( struct domain * theDomain ){
+   meshOmChoice = theDomain.theParList.Exact_Mesh
+   meshOmPar    = theDomain.theParList.Exact_Mesh_Par
+   enOmChoice = theDomain.theParList.Energy_Omega
+   enOmPar = theDomain.theParList.Energy_Omega_Par
+
    Mach = theDomain->theParList.Disk_Mach;
    r0 = theDomain->theParList.initPar1; // Inner edge
    r1 = theDomain->theParList.initPar2; // Fiducial radius
