@@ -269,7 +269,7 @@ void restart( struct domain * theDomain ){
    if( Nq != NUM_Q+NUM_FACES+1 ){ if(rank==0)printf("Ummm, I got an hdf5 read error. Check NUM_Q.\n"); exit(1); }
 
    
-   // Setup Radial Diagnostics
+   // Setup Diagnostics
    int num_tools_r = num_diagnostics_r();
    int num_tools_z = num_diagnostics_z();
    int num_tools_rz = num_diagnostics_rz();
