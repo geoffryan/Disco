@@ -4,7 +4,7 @@ Restart			0	//Restart from input.h5
 
 //Time Range//
 T_Start			0.0 //1.0
-T_End		    100.0
+T_End		    1.0
 T_Times_2pi		0
 
 //Output Frequency//
@@ -15,16 +15,16 @@ Use_Logtime		0
 
 //Grid Dimensions//
 Num_R			20
-Num_Z			40
-aspect			5.0	//Cell Aspect Ratio, for calculating N_phi
+Num_Z			1
+aspect			1.0	//Cell Aspect Ratio, for calculating N_phi
 Max_Aspect_Short	1.5	
 Max_Aspect_Long		1.5	//Aspect Ratio AMR Refinement Criteria
 
 //Domain Parameters//
 R_Min			0.0
-R_Max			20.0
-Z_Min			-20.0 //-0.0625
-Z_Max			20.0  //0.0625
+R_Max			1.0
+Z_Min			-10.0 //-0.0625
+Z_Max			10.0  //0.0625
 Z_Periodic		0
 Phi_Max			1.0
 P_Times_2pi		1
@@ -33,10 +33,10 @@ Log_Radius		0.1	//Only for option 2 of Log_Zoning
 
 //Numerical Parameters
 CFL			0.2
-PLM			1.0
+PLM			1.5
 Max_DT      0.0
 Riemann_Solver		0	//0=HLL, 1=HLLC, 2=HLLD
-Mesh_Motion		    0	//0=Fixed, 1=By Cell, 2=Riemann, 3=Avg, 4=Exact
+Mesh_Motion		    3	//0=Fixed, 1=By Cell, 2=Riemann, 3=Avg, 4=Exact
 Absorbing_BC		0
 Initial_Regrid		0
 Density_Floor		0.0 //1e-5
@@ -45,35 +45,35 @@ Constrained_Transport   1
 
 //Hydro Parameters
 Adiabatic_Index		1.66666666667
-Isothermal		0
+Isothermal		    0
 Use_Viscosity		0
-Viscosity		0.0
+Viscosity		    0.0
 Use_As_Alpha		0      
 
 //Planet Parameters	
 Mass_Ratio		0.0
-Eccentricity		0.0
+Eccentricity	0.0
 Drift_Rate		0.0 //-2.5e-4
 Drift_Exp		0.66666667
 Grav2D          1
 
 //Disk Parameters
 Mach_Number		20.0
-Include_Atmos		0
+Include_Atmos	0
 
 //Metric Parameters
-Metric_Par0     0
-Metric_Par1     0.0  //Om_rot
-Metric_Par2     1.0  //M
-Metric_Par3     0.0  //a
+Metric_Par0     0    //(int)
+Metric_Par1     0.0  //Om_rot (double)
+Metric_Par2     1.0  //M (double)
+Metric_Par3     0.0  //a (double)
 Metric_Par4     0.0
 
 //Initial Condition Parameters
-Init_Par0       0     // 
-Init_Par1       0.0   // 
-Init_Par2       0.0   // 
-Init_Par3       0.0   // 
-Init_Par4       0.0   // 
+Init_Par0       0     // int
+Init_Par1       0.0   // doub
+Init_Par2       0.0   // doub
+Init_Par3       0.0   // doub
+Init_Par4       0.0   // doub
 
 //Noise Parameters
 Noise_Type      0       // 0: No Noise, 1: URR and UPP 
