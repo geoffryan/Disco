@@ -54,9 +54,16 @@ struct param_list{
    double CFL, PLM, maxDT;
    double Density_Floor, Pressure_Floor;
 
+   int Exact_Mesh_Omega;
+   double Exact_Mesh_Omega_Par;
+   int Energy_Omega;
+   double Energy_Omega_Par;
+
    double Adiabatic_Index;
    double viscosity;
    int isothermal_flag;
+   int Cs2_Profile;
+   double Cs2_Par;
 
    double Disk_Mach;
    double Mass_Ratio;

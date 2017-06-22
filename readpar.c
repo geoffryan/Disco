@@ -85,9 +85,15 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "PLM"                   , VAR_DOUB , &(theList->PLM)             );
          err += readvar( pfile , "Adiabatic_Index"       , VAR_DOUB , &(theList->Adiabatic_Index) );
          err += readvar( pfile , "Isothermal"            , VAR_INT  , &(theList->isothermal_flag) );
+         err += readvar( pfile , "Cs2_Profile"      , VAR_INT  , &(theList->Cs2_Profile)     );
+         err += readvar( pfile , "Cs2_Par"  , VAR_DOUB  , &(theList->Cs2_Par)     );
          err += readvar( pfile , "Density_Floor"         , VAR_DOUB , &(theList->Density_Floor)   );
          err += readvar( pfile , "Pressure_Floor"        , VAR_DOUB , &(theList->Pressure_Floor)  );
          err += readvar( pfile , "Mesh_Motion"           , VAR_INT  , &(theList->Mesh_Motion)     );
+         err += readvar( pfile , "Exact_Mesh_Omega"      , VAR_INT  , &(theList->Exact_Mesh_Omega)     );
+         err += readvar( pfile , "Exact_Mesh_Omega_Par"  , VAR_DOUB  , &(theList->Exact_Mesh_Omega_Par)     );
+         err += readvar( pfile , "Energy_Omega"      , VAR_INT  , &(theList->Energy_Omega)     );
+         err += readvar( pfile , "Energy_Omega_Par"  , VAR_DOUB  , &(theList->Energy_Omega_Par)     );
          err += readvar( pfile , "Riemann_Solver"        , VAR_INT  , &(theList->Riemann_Solver)  );
          err += readvar( pfile , "Initial_Regrid"        , VAR_INT  , &(theList->Initial_Regrid)  );
          err += readvar( pfile , "Restart"               , VAR_INT  , &(theList->restart_flag)    );
