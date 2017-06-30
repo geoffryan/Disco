@@ -305,9 +305,7 @@ void output( struct domain * theDomain , char * filestart ){
    int Z_Periodic = theDomain->theParList.Z_Periodic;
 
    int NpDat = 6;
-   int NtoolsR = theDomain->num_tools_r;
-   int NtoolsZ = theDomain->num_tools_z;
-   int NtoolsRZ = theDomain->num_tools_rz;
+   int Ntools = theDomain->num_tools;
    avg_diagnostics( theDomain );
 
    char filename[256];
@@ -369,14 +367,8 @@ void output( struct domain * theDomain , char * filestart ){
       fdims2[0] = Npl;
       fdims2[1] = NpDat;
       createDataset(filename,"Data","Planets",2,fdims2,H5T_NATIVE_DOUBLE);
-      fdims2[0] = Nr_Tot;
-      fdims2[1] = NtoolsR;
-      createDataset(filename,"Data","Radial_Diagnostics",2,fdims2,H5T_NATIVE_DOUBLE);
-      fdims2[0] = Nz_Tot;
-      fdims2[1] = NtoolsZ;
-      createDataset(filename,"Data","Vertical_Diagnostics",2,fdims2,H5T_NATIVE_DOUBLE);
-      hsize_t fdims3[3] = {Nz_Tot, Nr_Tot, NtoolsRZ};
-      createDataset(filename,"Data","Poloidal_Diagnostics",3,fdims3,H5T_NATIVE_DOUBLE);
+      hsize_t fdims3[3] = {Nz_Tot, Nr_Tot, Ntools};
+      createDataset(filename,"Data","Diagnostics",3,fdims3,H5T_NATIVE_DOUBLE);
    }
    MPI_Barrier( theDomain->theComm );
    if( rank==0 ){
@@ -427,7 +419,7 @@ void output( struct domain * theDomain , char * filestart ){
    int * Index   = (int *) malloc( jSize*kSize*sizeof(int) );
    int * Size    = (int *) malloc( jSize*kSize*sizeof(int) );
    int * Id_phi0 = (int *) malloc( jSize*kSize*sizeof(int) );
-   double * diagRZwrite = (double *) malloc( jSize*kSize*NtoolsRZ*sizeof(double) );
+   double * diagRZwrite = (double *) malloc( jSize*kSize*Ntools*sizeof(double) );
    double * Qwrite = (double *) malloc( myNtot*Ndoub*sizeof(double) );
 
    double *Qrz = theDomain->theTools.Qrz;
@@ -440,8 +432,8 @@ void output( struct domain * theDomain , char * filestart ){
          int jk = (k-kmin)*jSize + (j-jmin);
          Index[jk] = index;
          Size[jk] = Np[j+Nr*k];
-         for(q=0; q<NtoolsRZ; q++)
-            diagRZwrite[NtoolsRZ*jk+q] = Qrz[NtoolsRZ*(j+Nr*k)+q];
+         for(q=0; q<Ntools; q++)
+            diagRZwrite[Ntools*jk+q] = Qrz[Ntools*(j+Nr*k)+q];
  
          double phi0 = M_PI;
          int Id = 0;
@@ -488,41 +480,10 @@ void output( struct domain * theDomain , char * filestart ){
          writePatch( filename , "Grid" , "Np"      , Size    , H5T_NATIVE_INT , 2 , start2 , loc_size2 , glo_size2 );
          writePatch( filename , "Grid" , "Id_phi0" , Id_phi0 , H5T_NATIVE_INT , 2 , start2 , loc_size2 , glo_size2 );
          int start3[3] = {k0, j0, 0};
-         int loc_size3[3] = {kSize, jSize, NtoolsRZ};
-         int glo_size3[3] = {Nz_Tot, Nr_Tot, NtoolsRZ};
-         writePatch( filename , "Data" , "Poloidal_Diagnostics" , diagRZwrite , H5T_NATIVE_DOUBLE , 3 , start3 , loc_size3 , glo_size3 );
+         int loc_size3[3] = {kSize, jSize, Ntools};
+         int glo_size3[3] = {Nz_Tot, Nr_Tot, Ntools};
+         writePatch( filename , "Data" , "Diagnostics" , diagRZwrite , H5T_NATIVE_DOUBLE , 3 , start3 , loc_size3 , glo_size3 );
 
-         //Write 1D Radial Data
-         if( dim_rank[1] == 0 ){
-            int offset = Ng;
-            if( dim_rank[0] == 0 ) offset = 0;
-            int start1[1]    = {j0};
-            int loc_size1[1] = {jSize};
-            if( dim_rank[0] == dim_size[0]-1 ) loc_size1[0]++;
-            int glo_size1[1] = {Nr_Tot+1};
-            writePatch( filename , "Grid" , "r_jph" , r_jph-1+offset , H5T_NATIVE_DOUBLE , 1 , start1 , loc_size1 , glo_size1 );
-            int start2[2] = {j0,0};
-            int loc_size2[2] = {jSize,NtoolsR};
-            int glo_size2[2] = {Nr_Tot,NtoolsR};
-            double * Q = theDomain->theTools.Qr;
-            writePatch( filename , "Data" , "Radial_Diagnostics" , Q + offset*NtoolsR , H5T_NATIVE_DOUBLE , 2 , start2 , loc_size2 , glo_size2 );
-         }
-         //Write 1D Vertical Data
-         if( dim_rank[0] == 0 ){
-            int offset = Ng;
-            if( dim_rank[1] == 0 ) offset = 0;
-            //if( Z_Periodic && dim_rank[1] == 0 ) offset += Ng;
-            int start1[1]    = {k0};
-            int loc_size1[1] = {kSize};
-            if( dim_rank[1] == dim_size[1]-1 ) loc_size1[0]++;
-            int glo_size1[1] = {Nz_Tot+1};
-            writePatch( filename , "Grid" , "z_kph" , z_kph-1+offset , H5T_NATIVE_DOUBLE , 1 , start1 , loc_size1 , glo_size1 );
-            int start2[2] = {k0,0};
-            int loc_size2[2] = {kSize,NtoolsZ};
-            int glo_size2[2] = {Nz_Tot,NtoolsZ};
-            double * Q = theDomain->theTools.Qz;
-            writePatch( filename , "Data" , "Vertical_Diagnostics" , Q + offset*NtoolsZ , H5T_NATIVE_DOUBLE , 2 , start2 , loc_size2 , glo_size2 );
-         }
       }
       MPI_Barrier( theDomain->theComm );
    }

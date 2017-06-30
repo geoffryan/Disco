@@ -9,21 +9,15 @@ void setDiagParams( struct domain * theDomain ){
    gamma_law = theDomain->theParList.Adiabatic_Index;
 }
 
-int num_diagnostics_r(void){
-   return(0);
-}
-int num_diagnostics_z(void){
-   return(0);
-}
-int num_diagnostics_rz(void){
+int num_diagnostics(void){
    return(48);
 }
 
 
 /* GRMHD */
 
-void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
-                        double * Qrz, struct domain * theDomain )
+void get_diagnostics( double * x , double * prim , double * Qrz, 
+                        struct domain * theDomain )
 {
     double r = x[0];
     double al, be[3], gam[9], igam[9], jac;

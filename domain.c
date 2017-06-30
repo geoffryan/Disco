@@ -4,9 +4,7 @@
 double get_moment_arm( double * , double * );
 double get_dV( double * , double * );
 
-int num_diagnostics_r( void );
-int num_diagnostics_z( void );
-int num_diagnostics_rz( void );
+int num_diagnostics( void );
 void initializePlanets( struct planet * );
 
 void setICparams( struct domain * );
@@ -45,20 +43,12 @@ void setupDomain( struct domain * theDomain ){
    theDomain->thePlanets = (struct planet *) malloc( Npl*sizeof(struct planet) );
    initializePlanets( theDomain->thePlanets );
 
-   int num_tools_r  = num_diagnostics_r();
-   int num_tools_z  = num_diagnostics_z();
-   int num_tools_rz = num_diagnostics_rz();
-   theDomain->num_tools_r = num_tools_r;
-   theDomain->num_tools_z = num_tools_z;
-   theDomain->num_tools_rz = num_tools_rz;
+   int num_tools = num_diagnostics();
+   theDomain->num_tools = num_tools;
    theDomain->theTools.t_avg = 0.0;
-   theDomain->theTools.Qr = (double *) malloc( Nr*num_tools_r*sizeof(double) );
-   theDomain->theTools.Qz = (double *) malloc( Nz*num_tools_z*sizeof(double) );
-   theDomain->theTools.Qrz = (double *) malloc( Nr*Nz*num_tools_rz*sizeof(double) );
+   theDomain->theTools.Qrz = (double *) malloc( Nr*Nz*num_tools*sizeof(double) );
    int i;
-   for( i=0 ; i<Nr*num_tools_r ; ++i ) theDomain->theTools.Qr[i] = 0.0;
-   for( i=0 ; i<Nz*num_tools_z ; ++i ) theDomain->theTools.Qz[i] = 0.0;
-   for( i=0 ; i<Nr*Nz*num_tools_rz ; ++i ) theDomain->theTools.Qrz[i] = 0.0;
+   for( i=0 ; i<Nr*Nz*num_tools ; ++i ) theDomain->theTools.Qrz[i] = 0.0;
 
    double Pmax = theDomain->theParList.phimax;
    for( jk=0 ; jk<Nr*Nz ; ++jk ){
@@ -213,8 +203,6 @@ void freeDomain( struct domain * theDomain ){
    theDomain->z_kph--;
    free( theDomain->z_kph );
    free( theDomain->thePlanets );
-   free( theDomain->theTools.Qr );
-   free( theDomain->theTools.Qz );
    free( theDomain->theTools.Qrz );
    free( theDomain->fIndex_r );
    free( theDomain->fIndex_z );

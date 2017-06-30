@@ -44,7 +44,7 @@ def loadDiagRZ(filename):
     t = f['Grid']['T'][0]
     rjph = f['Grid']['r_jph'][...]
     zkph = f['Grid']['z_kph'][...]
-    diag = f['Data']['Poloidal_Diagnostics'][...]
+    diag = f['Data']['Diagnostics'][...]
 
     f.close()
 

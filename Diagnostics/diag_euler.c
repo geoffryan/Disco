@@ -7,13 +7,7 @@ void setDiagParams( struct domain * theDomain ){
    gamma_law = theDomain->theParList.Adiabatic_Index;
 }
 
-int num_diagnostics_r(void){
-   return(0);
-}
-int num_diagnostics_z(void){
-   return(0);
-}
-int num_diagnostics_rz(void){
+int num_diagnostics(void){
    return(8);
 }
 
@@ -21,8 +15,8 @@ void planetaryForce( struct planet * , double , double , double , double * , dou
 
 /* Generic Diagnostics for Euler*/
 
-void get_diagnostics( double * x , double * prim , double * Qr , double * Qz,
-                        double * Qrz, struct domain * theDomain )
+void get_diagnostics( double * x , double * prim , double * Qrz, 
+                        struct domain * theDomain )
 {
    double r = x[0];
    double phi = x[1];
