@@ -4,7 +4,7 @@ static int om_flag = 0;
 static double Omega0 = 0.0;
 static double d = 0.0;
 
-void setOmegaParams( struct domain * theDomain ){
+void setRotFrameParams( struct domain * theDomain ){
    om_flag = theDomain->theParList.RotFrame;
    Omega0  = theDomain->theParList.RotOmega;
    d       = theDomain->theParList.RotD;

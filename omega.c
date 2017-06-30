@@ -15,7 +15,7 @@ static double r2 = 0.0;
 static double H0 = 0.0;
 static double M = 0.0;
 
-void setDiskParams( struct domain * theDomain ){
+void setOmegaParams( struct domain * theDomain ){
    meshOmChoice = theDomain->theParList.Exact_Mesh_Omega;
    meshOmPar    = theDomain->theParList.Exact_Mesh_Omega_Par;
    enOmChoice = theDomain->theParList.Energy_Omega;
