@@ -94,6 +94,9 @@ int read_par_file( struct domain * theDomain ){
          err += readvar( pfile , "Exact_Mesh_Omega_Par"  , VAR_DOUB  , &(theList->Exact_Mesh_Omega_Par)     );
          err += readvar( pfile , "Energy_Omega"      , VAR_INT  , &(theList->Energy_Omega)     );
          err += readvar( pfile , "Energy_Omega_Par"  , VAR_DOUB  , &(theList->Energy_Omega_Par)     );
+         err += readvar( pfile , "RotFrame"             , VAR_INT  , &(theList->RotFrame)     );
+         err += readvar( pfile , "RotOmega"             , VAR_DOUB  , &(theList->RotOmega)     );
+         err += readvar( pfile , "RotD"                 , VAR_DOUB  , &(theList->RotD)     );
          err += readvar( pfile , "Riemann_Solver"        , VAR_INT  , &(theList->Riemann_Solver)  );
          err += readvar( pfile , "Initial_Regrid"        , VAR_INT  , &(theList->Initial_Regrid)  );
          err += readvar( pfile , "Restart"               , VAR_INT  , &(theList->restart_flag)    );

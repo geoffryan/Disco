@@ -209,10 +209,16 @@ void writePars(struct domain *theDomain, char filename[])
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "PLM", &(pars->PLM),
                     H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "maxDT", &(pars->maxDT),
+                    H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Adiabatic_Index", &(pars->Adiabatic_Index),
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Isothermal", &(pars->isothermal_flag),
                     H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Cs2_Profile", &(pars->Cs2_Profile),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Cs2_Par", &(pars->Cs2_Par),
+                    H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Density_Floor", &(pars->Density_Floor),
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Pressure_Floor", &(pars->Pressure_Floor),
@@ -226,6 +232,21 @@ void writePars(struct domain *theDomain, char filename[])
                     H5T_NATIVE_INT);
     dumpVal(filename, "Pars", "Restart", &(pars->restart_flag),
                     H5T_NATIVE_INT);
+
+    dumpVal(filename, "Pars", "Exact_Mesh_Omega", &(pars->Exact_Mesh_Omega),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Exact_Mesh_Omega_Par", 
+                    &(pars->Exact_Mesh_Omega_Par), H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "Energy_Omega", &(pars->Energy_Omega),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "Energy_Omega_Par", 
+                    &(pars->Energy_Omega_Par), H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "RotFrame", &(pars->RotFrame),
+                    H5T_NATIVE_INT);
+    dumpVal(filename, "Pars", "RotOmega", &(pars->RotOmega),
+                    H5T_NATIVE_DOUBLE);
+    dumpVal(filename, "Pars", "RotD", &(pars->RotD),
+                    H5T_NATIVE_DOUBLE);
     
     dumpVal(filename, "Pars", "Use_Viscosity", &(pars->visc_flag),
                     H5T_NATIVE_INT);

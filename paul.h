@@ -58,6 +58,8 @@ struct param_list{
    double Exact_Mesh_Omega_Par;
    int Energy_Omega;
    double Energy_Omega_Par;
+   int RotFrame;
+   double RotOmega, RotD;
 
    double Adiabatic_Index;
    double viscosity;
