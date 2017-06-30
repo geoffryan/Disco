@@ -1,6 +1,6 @@
-## Modifying Disco ##
+# Modifying Disco #
 
-#### Adding New Parameters ####
+### Adding New Parameters ###
 
 There is one rule when making new run-time parameters: the examples in `Templates/` must still work.
 
@@ -18,7 +18,7 @@ Here `"NAME_IN_PARFILE"` is the name of the parameter in the `in.par` file, `VAR
 3. `Output/h5out.c`: In the function `void writePars(struct domain *, char *)`  add a line that writes your parameter to the checkpoint file.  This line looks like:
 
 ```c
-    $ dumpVal(filename, "Pars", "NAME_IN_H5FILE", $(pars->NAME_IN_STRUCT), DATA_TYPE);
+    dumpVal(filename, "Pars", "NAME_IN_H5FILE", $(pars->NAME_IN_STRUCT), DATA_TYPE);
 ```
 
 Here `"NAME_IN_H5FILE"` will be the name of your parameter in the checkpoint file, `NAME_IN_STRUCT` is the name of the variable in the `param_list` struct, and `DATA_TYPE` is the associated HDF5 data type (either `H5T_NATIVE_INT` or `H5T_NATIVE_DOUBLE`).
