@@ -484,6 +484,27 @@ void output( struct domain * theDomain , char * filestart ){
          int glo_size3[3] = {Nz_Tot, Nr_Tot, Ntools};
          writePatch( filename , "Data" , "Diagnostics" , diagRZwrite , H5T_NATIVE_DOUBLE , 3 , start3 , loc_size3 , glo_size3 );
 
+         //Write 1D Radial Data
+         if( dim_rank[1] == 0 ){
+            int offset = Ng;
+            if( dim_rank[0] == 0 ) offset = 0;
+            int start1[1]    = {j0};
+            int loc_size1[1] = {jSize};
+            if( dim_rank[0] == dim_size[0]-1 ) loc_size1[0]++;
+            int glo_size1[1] = {Nr_Tot+1};
+            writePatch( filename , "Grid" , "r_jph" , r_jph-1+offset , H5T_NATIVE_DOUBLE , 1 , start1 , loc_size1 , glo_size1 );
+         }
+         //Write 1D Vertical Data
+         if( dim_rank[0] == 0 ){
+            int offset = Ng;
+            if( dim_rank[1] == 0 ) offset = 0;
+            //if( Z_Periodic && dim_rank[1] == 0 ) offset += Ng;
+            int start1[1]    = {k0};
+            int loc_size1[1] = {kSize};
+            if( dim_rank[1] == dim_size[1]-1 ) loc_size1[0]++;
+            int glo_size1[1] = {Nz_Tot+1};
+            writePatch( filename , "Grid" , "z_kph" , z_kph-1+offset , H5T_NATIVE_DOUBLE , 1 , start1 , loc_size1 , glo_size1 );
+         }
       }
       MPI_Barrier( theDomain->theComm );
    }
