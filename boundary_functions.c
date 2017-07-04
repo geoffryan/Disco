@@ -337,6 +337,16 @@ void boundary_zerograd_rinn( struct domain *theDomain, int diode)
                 int n1 = fIndex[JK+1];
 
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, -1);
+
+                if(diode)
+                {
+                    int i;
+                    for(i=0; i<Np[jk]; i++)
+                    {
+                        if(theCells[jk][i].prim[URR] > 0)
+                            theCells[jk][i].prim[URR] = 0.0;
+                    }
+                }
             }
     }
 }
@@ -368,6 +378,16 @@ void boundary_zerograd_rout( struct domain *theDomain, int diode)
                 int n1 = fIndex[JK+1];
                 
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, +1);
+                
+                if(diode)
+                {
+                    int i;
+                    for(i=0; i<Np[jk]; i++)
+                    {
+                        if(theCells[jk][i].prim[URR] < 0)
+                            theCells[jk][i].prim[URR] = 0.0;
+                    }
+                }
             }
     }
 }
@@ -396,6 +416,16 @@ void boundary_zerograd_zbot( struct domain *theDomain, int diode)
                 int n1 = fIndex[jk+1];
 
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, -1);
+                
+                if(diode)
+                {
+                    int i;
+                    for(i=0; i<Np[jk]; i++)
+                    {
+                        if(theCells[jk][i].prim[UZZ] > 0)
+                            theCells[jk][i].prim[UZZ] = 0.0;
+                    }
+                }
             }
     }
 }
@@ -426,6 +456,16 @@ void boundary_zerograd_ztop( struct domain *theDomain, int diode)
                 int n1 = fIndex[jk-Nr+1];
 
                 set_cells_copy(theCells[jk], Np[jk], theFaces, n0, n1, +1);
+                
+                if(diode)
+                {
+                    int i;
+                    for(i=0; i<Np[jk]; i++)
+                    {
+                        if(theCells[jk][i].prim[UZZ] < 0)
+                            theCells[jk][i].prim[UZZ] = 0.0;
+                    }
+                }
             }
     }
 }
