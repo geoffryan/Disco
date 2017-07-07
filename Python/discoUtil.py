@@ -76,3 +76,52 @@ def plotAx(ax, x, y, xscale, yscale, xlabel, ylabel, *args, **kwargs):
     else:
         ax.set_yscale("linear")
 
+def getVarNames(filename):
+    f = h5.File(filename, "r")
+    hydro = str(f['Opts']['HYDRO'][0])
+    num_c = int(f['Opts']['NUM_C'][0])
+    num_n = int(f['Opts']['NUM_N'][0])
+    num_q = num_c + num_n
+
+    names = None
+    texnames = None
+
+    if hydro == 'euler' and num_c <= 5:
+        names = ['rho', 'P', 'vr', 'om', 'vz'][:num_c]
+        texnames = [r'$\rho$', r'$P$', r'$v_r$', r'$\Omega$', r'$v_z$'][:num_c]
+        for q in range(num_n):
+            names.append('q{0:d}'.format(q))
+            texnames.append(r'$q_{0:d}$'.format(q))
+    
+    elif hydro == 'mhd' and num_c <= 8:
+        names = ['rho', 'P', 'vr', 'om', 'vz', 'Br', 'Bp', 'Bz'][:num_c]
+        texnames = [r'$\rho$', r'$P$', r'$v_r$', r'$\Omega$', r'$v_z$', 
+                        r'$B_r$', r'$B_\phi$', r'$B_z$'][:num_c]
+        for q in range(num_n):
+            names.append('q{0:d}'.format(q))
+            texnames.append(r'$q_{0:d}$'.format(q))
+
+    elif hydro == 'greuler' and num_c <= 5:
+        names = ['rho', 'P', 'u_r', 'u_p', 'u_z'][:num_c]
+        texnames = [r'$\rho$', r'$P$', r'$u_r$', r'$u_\phi$', r'$u_z$'][:num_c]
+        for q in range(num_n):
+            names.append('q{0:d}'.format(q))
+            texnames.append(r'$q_{0:d}$'.format(q))
+
+    elif (hydro == 'grmhd' or hydro == 'grmhd2') and num_c <= 8:
+        names = ['rho', 'P', 'u_r', 'u_p', 'u_z', 'Br', 'Bp', 'Bz'][:num_c]
+        texnames = [r'$\rho$', r'$P$', r'$u_r$', r'$u_\phi$', r'$u_z$', 
+                        r'$B^r$', r'$B^\phi$', r'$B^z$'][:num_c]
+        for q in range(num_n):
+            names.append('q{0:d}'.format(q))
+            texnames.append(r'$q_{0:d}$'.format(q))
+
+    if names == None or texnames == None:
+        names = ["p{0:d}".format(q) for q in range(num_c)]
+        texnames = [r"$p_{0:d}$".format(q) for q in range(num_c)]
+        for q in range(num_n):
+            names.append('q{0:d}'.format(q))
+            texnames.append(r'$q_{0:d}$'.format(q))
+
+    return names, texnames, num_c, num_n
+
