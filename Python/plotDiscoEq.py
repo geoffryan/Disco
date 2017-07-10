@@ -94,7 +94,7 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
         vars = range(nq)
 
     if logvars is None:
-        logvars = [0,1]
+        logvars = []
 
     for q in range(nq):
         if q in vars or q in logvars:
