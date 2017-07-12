@@ -7,8 +7,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import discoUtil as du
 
-def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, noGhost=False, 
-                colorbar=True, xlabel=None, ylabel=None, log=False, rmax=None):
+def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, 
+            noGhost=False, colorbar=True, xlabel=None, ylabel=None, log=False, 
+            rmax=None, planets=None):
         
     if vmin is None:
         vmin = q.min()
@@ -45,6 +46,12 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, noGhost=Fal
         if lim_float and rf.max() > rmax:
             rmax = rf.max()
 
+    if planets is not None:
+        rpl = planets[:,3]
+        ppl = planets[:,4]
+        xpl = rpl * np.cos(ppl)
+        ypl = rpl * np.sin(ppl)
+        ax.plot(xpl, ypl, color='grey', ls='', marker='o', mew=0, ms=5)
         
     ax.set_aspect('equal')
     ax.set_xlim(-rmax, rmax)
@@ -64,7 +71,7 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, noGhost=Fal
 
 
 def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
-                    bounds=None, rmax=None):
+                    bounds=None, rmax=None, planets=False):
     
     print("Loading {0:s}...".format(file))
 
@@ -73,10 +80,16 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
     zkph = dat[1]
     primPhi0 = dat[2]
     piph = dat[3]
+    if planets:
+        planetDat = dat[4]
+    else:
+        planetDat = None
 
     if om is not None:
         phi1 = phi - om*t
         piph1 = piph - om*t
+        if planetDat is not None:
+            planetDat[:,4] -= om*t
     else:
         phi1 = phi
         piph1 = piph
@@ -113,7 +126,7 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
                 fig, ax = plt.subplots(1,1, figsize=(12,9))
 
                 primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], 
-                            vmin=vmin, vmax=vmax, rmax=rmax)
+                            vmin=vmin, vmax=vmax, rmax=rmax, planets=planetDat)
                 fig.suptitle(title, fontsize=24)
                 plotname = "plot_eq_{0:s}_lin_{1:s}.png".format(name, varnames[q])
                 
@@ -125,7 +138,8 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
                 fig, ax = plt.subplots(1,1, figsize=(12,9))
 
                 primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], 
-                            vmin=vmin, vmax=vmax, rmax=rmax, log=True)
+                            vmin=vmin, vmax=vmax, rmax=rmax, planets=planetDat,
+                            log=True)
                 fig.suptitle(title, fontsize=24)
                 plotname = "plot_eq_{0:s}_log_{1:s}.png".format(name, varnames[q])
 
@@ -196,8 +210,10 @@ if __name__ == "__main__":
                             help="Variables to plot.")
     parser.add_argument('-l', '--logvars', nargs='+', type=int,
                             help="Variables to plot logscale.")
+    parser.add_argument('-p', '--planets', action='store_true',
+                            help="Plot planets.")
     parser.add_argument('-b', '--bounds', nargs='?', const=True,
-                            help="Use global max/min for bounds, optionally set by BOUNDS file.")
+                            help="Use global max/min for bounds. Optional argument BOUNDS is a file. If it exists, it will be read for parameter bounds. If it does not exist the global max/min will be calculated and saved to the file.")
     parser.add_argument('-r', '--rmax', type=float, 
                             help="Set plot limits to RMAX.")
     parser.add_argument('-o', '--omega', type=float, 
@@ -212,6 +228,7 @@ if __name__ == "__main__":
     om = args.omega
     rmax = args.rmax
     use_bounds = args.bounds
+    planets = args.planets
     noghost = args.noghost
 
     files = args.checkpoints
@@ -222,5 +239,5 @@ if __name__ == "__main__":
 
     for f in files:
         plotCheckpoint(f, vars=vars, logvars=logvars, bounds=bounds, om=om, 
-                        rmax=rmax, noGhost=noghost)
+                        rmax=rmax, noGhost=noghost, planets=planets)
 

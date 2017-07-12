@@ -16,6 +16,7 @@ def loadCheckpoint(filename):
     t = f['Grid']['T'][0]
     riph = f['Grid']['r_jph'][...]
     ziph = f['Grid']['z_kph'][...]
+    planetDat = f['Data']['Planets'][...]
 
     r = np.zeros(piph.shape)
     z = np.zeros(piph.shape)
@@ -35,7 +36,7 @@ def loadCheckpoint(filename):
             phi[ind0:ind1] = 0.5*(pimh+piph_strip)
             primPhi0[k,j,:] = prim[idPhi0[k,j],:]
 
-    return t, r, phi, z, prim, (riph, ziph, primPhi0, piph)
+    return t, r, phi, z, prim, (riph, ziph, primPhi0, piph, planetDat)
 
 def loadDiagRZ(filename):
 
