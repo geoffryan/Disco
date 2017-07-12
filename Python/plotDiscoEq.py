@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse as ag
 import h5py as h5
@@ -132,7 +133,7 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
                 fig.savefig(plotname)
                 plt.close(fig)
 
-def getBounds(files):
+def calcBounds(files):
 
     f = files[0]
     t, r, phi, z, prim, dat = du.loadCheckpoint(f)
@@ -149,6 +150,46 @@ def getBounds(files):
     
     return bounds
 
+def writeBoundsFile(filename, names, bounds):
+
+    lines = ["{0:s} {1:.12g} {2:.12g}\n".format(names[q], bounds[q,0], bounds[q,1])
+                for q in range(len(names))]
+
+    f = open(filename, "w")
+    for line in lines:
+        f.write(line)
+
+    f.close()
+
+def readBoundsFile(filename, num_q):
+
+    bounds = np.loadtxt(filename, usecols=[1,2])
+
+    bounds = bounds[:num_q]
+
+    return bounds
+    
+def getBounds(use_bounds, names, files):
+
+    print(use_bounds)
+    print(names)
+    print(files)
+
+    num_q = len(names)
+
+    if use_bounds is not None:
+        if use_bounds is True:
+            bounds = calcBounds(files)
+        else:
+            if os.path.isfile(use_bounds):
+                bounds = readBoundsFile(use_bounds, num_q)
+            else:
+                bounds = calcBounds(files)
+                writeBoundsFile(use_bounds, names, bounds)
+    else:
+        bounds = None
+
+    return bounds
 
 if __name__ == "__main__":
 
@@ -159,8 +200,8 @@ if __name__ == "__main__":
                             help="Variables to plot.")
     parser.add_argument('-l', '--logvars', nargs='+', type=int,
                             help="Variables to plot logscale.")
-    parser.add_argument('-b', '--bounds', action='store_true',
-                            help="Use global max/min for bounds.")
+    parser.add_argument('-b', '--bounds', nargs='?', const=True,
+                            help="Use global max/min for bounds, optionally set by BOUNDS file.")
     parser.add_argument('-r', '--rmax', type=float, 
                             help="Set plot limits to RMAX.")
     parser.add_argument('-o', '--omega', type=float, 
@@ -174,16 +215,16 @@ if __name__ == "__main__":
     logvars = args.logvars
     om = args.omega
     rmax = args.rmax
-    calc_bounds = args.bounds
+    use_bounds = args.bounds
     noghost = args.noghost
 
     files = args.checkpoints
 
-    if calc_bounds:
-        bounds = getBounds(files)
-    else:
-        bounds = None
+    names, texnames, num_c, num_n = du.getVarNames(files[0])
+
+    bounds = getBounds(use_bounds, names, files)
 
     for f in files:
         plotCheckpoint(f, vars=vars, logvars=logvars, bounds=bounds, om=om, 
                         rmax=rmax, noGhost=noghost)
+
