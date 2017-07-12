@@ -171,10 +171,6 @@ def readBoundsFile(filename, num_q):
     
 def getBounds(use_bounds, names, files):
 
-    print(use_bounds)
-    print(names)
-    print(files)
-
     num_q = len(names)
 
     if use_bounds is not None:
