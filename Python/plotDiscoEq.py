@@ -10,6 +10,12 @@ import discoUtil as du
 def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, 
             noGhost=False, colorbar=True, xlabel=None, ylabel=None, log=False, 
             rmax=None, planets=None):
+
+
+    try:
+        cmap = mpl.cm.inferno
+    except:
+        cmap = mpl.cm.afmhot
         
     if vmin is None:
         vmin = q.min()
