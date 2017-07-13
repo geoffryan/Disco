@@ -100,9 +100,10 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
         phi1 = phi
         piph1 = piph
 
-    nq = prim.shape[1]
 
     varnames, vartex, num_c, num_n = du.getVarNames(file)
+    #nq = prim.shape[1]
+    nq = num_c + num_n
 
     Zs = np.unique(z)
     z_eq = Zs[len(Zs)/2]
