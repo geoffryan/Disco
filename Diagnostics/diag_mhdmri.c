@@ -6,7 +6,7 @@ void setDiagParams( struct domain * theDomain ){
    gamma_law = theDomain->theParList.Adiabatic_Index;
 }
 
-int num_diagnostics_rz(void){
+int num_diagnostics(void){
    return(18);
 }
 
