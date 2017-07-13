@@ -47,7 +47,7 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None,
         y = rf[:,None] * np.sin(phif)[None,:]
 
         C = ax.pcolormesh(x, y, q[None,ind], 
-                cmap=plt.cm.inferno, vmin=vmin, vmax=vmax, norm=norm)
+                cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
 
         if lim_float and rf.max() > rmax:
             rmax = rf.max()
