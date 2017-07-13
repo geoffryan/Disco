@@ -40,7 +40,7 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None,
         ind = r==R
         phif = np.empty(len(piph[ind])+1)
         phif[1:] = piph[ind]
-        phif[0] = piph[ind][-1]
+        phif[0] = piph[ind][-1] - 2*np.pi
         rf = rjph[i:i+2]
 
         x = rf[:,None] * np.cos(phif)[None,:]
