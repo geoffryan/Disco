@@ -31,8 +31,9 @@ int main( int argc , char * argv[] ){
    struct domain theDomain = {0};
    start_clock( &theDomain ); 
    read_par_file( &theDomain );
-   
-   print_welcome();
+  
+   if(theDomain.rank==0)
+      print_welcome();
 
    int error = mpiSetup(&theDomain,argc,argv);
    if( error==1 ) return(0);
