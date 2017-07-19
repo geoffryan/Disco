@@ -37,6 +37,8 @@ PLM			1.0
 Max_DT      1.0e100
 Riemann_Solver		1	//0=HLL, 1=HLLC, 2=HLLD
 Mesh_Motion		    3	//0=Fixed, 1=By Cell, 2=Riemann Solver, 3=Avg
+Exact_Mesh_Omega        0   //0=Fixed, 1=Rigid, 2=Kep, 3=Rig2Kep
+Exact_Mesh_Omega_Par    0.0 //unused so far
 Absorbing_BC		0
 Initial_Regrid		0
 Density_Floor		0.0 //1e-5
@@ -46,6 +48,10 @@ Constrained_Transport   0
 //Hydro Parameters
 Adiabatic_Index		1.66666666667
 Isothermal		    0
+Cs2_Profile         0   //0=Flat,1=FlatDiskMach,2=Visc,3=Sorathia
+Cs2_Par             0.0 //unused so far
+Energy_Omega        0   //0=Fixed, 1=Rigid, 2=Kep, 3=Rig2Kep, 4=Gaussian
+Energy_Omega_Par    0.0 //unused so far
 Use_Viscosity		0
 Viscosity		    0.0
 Use_As_Alpha		0      
@@ -56,6 +62,10 @@ Eccentricity	0.0
 Drift_Rate		0.0 //-2.5e-4
 Drift_Exp		0.66666667
 Grav2D          1
+//Rotating Frame
+RotFrame            0       //0=off, 1=on
+RotOmega            0.0     //Angular speed of frame
+RotD                0.0     //Distance from rotational axis to grid axis.
 
 //Disk Parameters
 Mach_Number		10.0
