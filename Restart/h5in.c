@@ -79,9 +79,7 @@ void freeDomain( struct domain * );
 
 void setPlanetParams( struct domain * );
 void initializePlanets( struct planet * );
-int num_diagnostics_r( void );
-int num_diagnostics_z( void );
-int num_diagnostics_rz( void );
+int num_diagnostics( void );
 int get_num_rzFaces( int , int , int );
 
 void restart( struct domain * theDomain ){
