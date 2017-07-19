@@ -209,7 +209,7 @@ void writePars(struct domain *theDomain, char filename[])
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "PLM", &(pars->PLM),
                     H5T_NATIVE_DOUBLE);
-    dumpVal(filename, "Pars", "maxDT", &(pars->maxDT),
+    dumpVal(filename, "Pars", "Max_DT", &(pars->maxDT),
                     H5T_NATIVE_DOUBLE);
     dumpVal(filename, "Pars", "Adiabatic_Index", &(pars->Adiabatic_Index),
                     H5T_NATIVE_DOUBLE);

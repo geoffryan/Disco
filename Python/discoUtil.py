@@ -4,12 +4,42 @@ import h5py as h5
 import matplotlib.pyplot as plt
 import numpy as np
 
+def loadPars(filename):
+
+    f = h5.File(filename, "r")
+
+    pars = {}
+    for key in f['Pars']:
+        pars[key] = f['Pars'][key][0]
+
+    f.close()
+
+    return pars
+
+def loadOpts(filename):
+
+    f = h5.File(filename, "r")
+
+    opts = {}
+    for key in f['Opts']:
+        opts[key] = f['Opts'][key][0]
+
+    f.close()
+
+    return opts
+
+
 def loadCheckpoint(filename):
 
     f = h5.File(filename, "r")
 
+    NUM_C = f['Opts']['NUM_C'][0]
+    NUM_N = f['Opts']['NUM_N'][0]
+    NUM_Q = NUM_N + NUM_C
+
     piph = f['Data']['Cells'][:,-1][...]
-    prim = f['Data']['Cells'][:,:-1][...]
+    prim = f['Data']['Cells'][:,:NUM_Q][...]
+    Phi = f['Data']['Cells'][:,NUM_Q:-1][...]
     index = f['Grid']['Index'][...]
     idPhi0 = f['Grid']['Id_phi0'][...]
     nphi = f['Grid']['Np'][...]
@@ -36,7 +66,8 @@ def loadCheckpoint(filename):
             phi[ind0:ind1] = 0.5*(pimh+piph_strip)
             primPhi0[k,j,:] = prim[idPhi0[k,j],:]
 
-    return t, r, phi, z, prim, (riph, ziph, primPhi0, piph, planetDat)
+    return t, r, phi, z, prim, (riph, ziph, primPhi0, piph, planetDat, Phi,
+                                    idPhi0)
 
 def loadDiagRZ(filename):
 

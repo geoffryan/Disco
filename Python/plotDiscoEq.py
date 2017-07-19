@@ -7,10 +7,11 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import discoUtil as du
 
-def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None, 
+def primPlot(fig, ax, rjph, piph, r, q, label, pars, vmin=None, vmax=None, 
             noGhost=False, colorbar=True, xlabel=None, ylabel=None, log=False, 
             rmax=None, planets=None):
 
+    phi_max = pars['Phi_Max']
 
     try:
         cmap = mpl.cm.inferno
@@ -38,15 +39,21 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None,
 
     for i, R in enumerate(Rs):
         ind = r==R
-        phif = np.empty(len(piph[ind])+1)
-        phif[1:] = piph[ind]
-        phif[0] = piph[ind][-1] - 2*np.pi
+        imax = np.argmax(piph[ind])
+
+        apiph = np.roll(piph[ind], -imax-1)
+        aq = np.roll(q[ind], -imax-1)
+
+        phif = np.empty(len(apiph)+1)
+        phif[1:] = apiph[:]
+        phif[0] = apiph[-1] - phi_max
+
         rf = rjph[i:i+2]
 
         x = rf[:,None] * np.cos(phif)[None,:]
         y = rf[:,None] * np.sin(phif)[None,:]
 
-        C = ax.pcolormesh(x, y, q[None,ind], 
+        C = ax.pcolormesh(x, y, aq[None,:], 
                 cmap=cmap, vmin=vmin, vmax=vmax, norm=norm)
 
         if lim_float and rf.max() > rmax:
@@ -77,7 +84,7 @@ def primPlot(fig, ax, rjph, piph, r, q, label, vmin=None, vmax=None,
 
 
 def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
-                    bounds=None, rmax=None, planets=False):
+                    bounds=None, rmax=None, planets=False, k=None):
     
     print("Loading {0:s}...".format(file))
 
@@ -86,6 +93,19 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
     zkph = dat[1]
     primPhi0 = dat[2]
     piph = dat[3]
+    pars = du.loadPars(file)
+
+    if k is None:
+        k = int(zkph.shape[0]/2-1)
+
+    zind = (z>zkph[k]) * (z<zkph[k+1])
+    r = r[zind]
+    phi = phi[zind]
+    prim = prim[zind,:]
+    primPhi0 = primPhi0[k,:]
+    piph = piph[zind]
+
+
     if planets:
         planetDat = dat[4]
     else:
@@ -132,7 +152,7 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
 
                 fig, ax = plt.subplots(1,1, figsize=(12,9))
 
-                primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], 
+                primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], pars,
                             vmin=vmin, vmax=vmax, rmax=rmax, planets=planetDat)
                 fig.suptitle(title, fontsize=24)
                 plotname = "plot_eq_{0:s}_lin_{1:s}.png".format(name, varnames[q])
@@ -144,7 +164,7 @@ def plotCheckpoint(file, vars=None, logvars=None, noGhost=False, om=None,
             if q in logvars:
                 fig, ax = plt.subplots(1,1, figsize=(12,9))
 
-                primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], 
+                primPlot(fig, ax, rjph, piph1, r, prim[:,q], vartex[q], pars,
                             vmin=vmin, vmax=vmax, rmax=rmax, planets=planetDat,
                             log=True)
                 fig.suptitle(title, fontsize=24)
